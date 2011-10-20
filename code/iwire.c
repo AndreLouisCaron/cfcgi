@@ -291,7 +291,7 @@ static size_t FCGI_STDIN
 {
       /* consume as much data as possible. */
     size_t used = _fcgi_iwire_min(stream->size, size);
-    stream->accept_content_stdi(stream, data, size);
+    stream->accept_content_stdi(stream, data, used);
       /* adjust parser state. */
     stream->size -= used;
     if ( stream->size == 0 ) {
