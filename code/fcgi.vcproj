@@ -152,11 +152,23 @@
 			>
 		</File>
 		<File
+			RelativePath=".\fcgi.hpp"
+			>
+		</File>
+		<File
+			RelativePath=".\istream.hpp"
+			>
+		</File>
+		<File
 			RelativePath=".\iwire.c"
 			>
 		</File>
 		<File
 			RelativePath=".\iwire.h"
+			>
+		</File>
+		<File
+			RelativePath=".\ostream.hpp"
 			>
 		</File>
 		<File

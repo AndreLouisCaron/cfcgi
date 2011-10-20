@@ -6,6 +6,7 @@
 // "http://www.opensource.org/licenses/mit".
 
 #include <fcgi.h>
+#include <fcgi.hpp>
 
 #include <ctime>
 #include <iostream>
@@ -169,9 +170,21 @@ namespace {
         }
     }
 
+    void write_stream ( fcgi_owire * stream, const char * data, size_t size )
+    {
+        for ( size_t i = 0; (i < size); ++i ) {
+            std::cout << int(data[i]) << ", ";
+        }
+    }
+
+    void flush_stream ( fcgi_owire * stream )
+    {
+        std::cout << std::endl;
+    }
+
 }
 
-int main ( int, char ** )
+void iwire_test ()
 {
         // Setup FastCGI record parser.
     ::fcgi_iwire_settings limits;
@@ -191,4 +204,54 @@ int main ( int, char ** )
     ::feed(&stream, DATA3, SIZE3);
     ::feed(&stream, DATA4, SIZE4);
     ::feed(&stream, DATA3, SIZE3);
+}
+
+void owire_test ()
+{
+      // prepare a fastcgi output stream.
+    ::fcgi_owire_settings limits;
+    ::fcgi_owire          stream;
+    ::fcgi_owire_init(&limits, &stream);
+    stream.write_stream = &::write_stream;
+    stream.flush_stream = &::flush_stream;
+      // sample responder.
+    ::fcgi_owire_new_request(&stream, 1, 1);
+      // send headers.
+    { char data[] = "\013\002SERVER_PORT80";
+      ::fcgi_owire_param(&stream, 1, data, sizeof(data)-1);
+    }
+    { char data[] = "";
+      ::fcgi_owire_param(&stream, 1, data, sizeof(data)-1); }
+    { char data[] = "";
+      ::fcgi_owire_stdi(&stream, 1, data, sizeof(data)-1); }
+}
+
+#include <sstream>
+
+std::string ostream_test ()
+{
+    std::ostringstream buffer;
+    fcgi::ostream stream(buffer);
+      // start request.
+    stream.new_request(1, 1);
+      // send request headers.
+    { const char data[] = "\013\002SERVER_PORT80";
+        stream.param(1, data, sizeof(data)-1);
+    } stream.param(1, 0, 0);
+      // send request body.
+    { const char data[] = "Hello, world!";
+        stream.stdi(1, data, sizeof(data)-1);
+    } stream.stdi(1, 0, 0);
+      // request complete.
+    return (buffer.str());
+}
+
+void istream_test ( const std::string& buffer )
+{
+    fcgi::istream().feed(buffer);
+}
+
+int main ( int, char ** )
+{
+    istream_test(ostream_test());
 }
