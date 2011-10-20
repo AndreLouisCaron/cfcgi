@@ -11,7 +11,7 @@
  * @brief Parser for FastCGI records.
  */
 
-#include "fcgi.h"
+#include "iwire.h"
 #include <string.h>
 
 static const char * fcgi_iwire_error_messages[] =

@@ -148,11 +148,19 @@
 	</References>
 	<Files>
 		<File
-			RelativePath=".\fcgi.c"
+			RelativePath=".\fcgi.h"
 			>
 		</File>
 		<File
-			RelativePath=".\fcgi.h"
+			RelativePath=".\iwire.c"
+			>
+		</File>
+		<File
+			RelativePath=".\iwire.h"
+			>
+		</File>
+		<File
+			RelativePath=".\types.h"
 			>
 		</File>
 	</Files>

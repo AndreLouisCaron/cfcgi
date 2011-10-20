@@ -1,7 +1,7 @@
-#ifndef _fcgi_h__
-#define _fcgi_h__
+#ifndef _fcgi_types_h__
+#define _fcgi_types_h__
 
-/* Copyright(c) Andre Caron (andre.l.caron@gmail.com), 2011
+/* Copyright(c) Andre Caron <andre.l.caron@gmail.com>, 2011
 **
 ** This document is covered by the an Open Source Initiative approved license. A
 ** copy of the license should have been provided alongside this software package
@@ -9,11 +9,14 @@
 ** "http://www.opensource.org/licenses/mit". */
 
 /*!
- * @file fcgi.h
+ * @file types.h
  * @author Andre Caron (andre.l.caron@gmail.com)
- * @brief FastCGI wire protocol.
+ * @brief Serializable integer types for use in FastCGI wire protocol.
  */
 
-#include "iwire.h"
+#include <stddef.h>
 
-#endif /* _fcgi_h__ */
+typedef unsigned char uint8_t;
+typedef unsigned int uint32_t;
+
+#endif /* _fcgi_types_h__ */
