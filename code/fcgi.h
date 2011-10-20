@@ -26,43 +26,46 @@ extern "C" {
   /*!
    * @brief Enumeration of error states the parser may report.
    */
-enum fcgi_parser_error
+typedef enum fcgi_iwire_error_t
 {
-    fcgi_parse_error_none=0,
-};
+    fcgi_iwire_error_none = 0,
+
+} fcgi_iwire_error;
 
   /*!
    * @brief Gets a human-readable description of the error.
    */
-const char * fcgi_error_message ( enum fcgi_parser_error error );
+const char * fcgi_iwire_error_message ( fcgi_iwire_error error );
 
   /*!
    * @brief Enumeration of parser states.
    */
-enum fcgi_parser_state
+typedef enum fcgi_iwire_state_t
 {
-    fcgi_parse_record_fail=-2,
-    fcgi_parse_record_skip=-1,
-    fcgi_parse_record_idle= 0,
-    fcgi_parse_record_head= 1, /* FCGI_BEGIN_REQUEST */
-    fcgi_parse_record_bail= 2, /* FCGI_ABORT_REQUEST */
-    fcgi_parse_record_done= 3, /* FCGI_END_REQUEST */
-    fcgi_parse_record_meta= 4, /* FCGI_PARAMS */
-    fcgi_parse_record_stdi= 5, /* FCGI_STDIN */
-    fcgi_parse_record_stdo= 6, /* FCGI_STDOUT */
-    fcgi_parse_record_stde= 7, /* FCGI_STDERR */
-    fcgi_parse_record_data= 8, /* FCGI_DATA */
-    fcgi_parse_record_pull= 9, /* FCGI_GET_VALUES */
-    fcgi_parse_record_push=10, /* FCGI_GET_VALUES_RESULT */
-};
+    fcgi_iwire_record_fail=-2,
+    fcgi_iwire_record_skip=-1,
+    fcgi_iwire_record_idle= 0,
+    fcgi_iwire_record_head= 1, /* FCGI_BEGIN_REQUEST */
+    fcgi_iwire_record_bail= 2, /* FCGI_ABORT_REQUEST */
+    fcgi_iwire_record_done= 3, /* FCGI_END_REQUEST */
+    fcgi_iwire_record_meta= 4, /* FCGI_PARAMS */
+    fcgi_iwire_record_stdi= 5, /* FCGI_STDIN */
+    fcgi_iwire_record_stdo= 6, /* FCGI_STDOUT */
+    fcgi_iwire_record_stde= 7, /* FCGI_STDERR */
+    fcgi_iwire_record_data= 8, /* FCGI_DATA */
+    fcgi_iwire_record_pull= 9, /* FCGI_GET_VALUES */
+    fcgi_iwire_record_push=10, /* FCGI_GET_VALUES_RESULT */
+
+} fcgi_iwire_state;
 
   /*!
-   * @brief Customizable limits for netstrings.
+   * @brief Customizable limits for FastCGI wire protocol.
    */
-struct fcgi_limits
+typedef struct fcgi_iwire_settings_t
 {
     int dummy;
-};
+
+} fcgi_iwire_settings;
 
   /*!
    * @brief FastCGI parser state.
@@ -71,7 +74,7 @@ struct fcgi_limits
    * does not buffer any data.  As soon as the syntax is validated, all content
    * is forwarded to the client code through the callbacks.
    */
-struct fcgi_parser
+typedef struct fcgi_iwire_t
 {
       /*! @public
        * @brief Current state of the parser.
@@ -82,7 +85,7 @@ struct fcgi_parser
        * @warning This field is provided to clients as read-only.  Any attempt
        *  to change it will cause unpredictable output.
        */
-    enum fcgi_parser_state state;
+    fcgi_iwire_state state;
 
       /*! @public
        * @brief Last error reported by the parser.
@@ -90,7 +93,9 @@ struct fcgi_parser
        * @warning This field should only be interpreted if @c state is set to
        *  @c fcgi_parsing_failed.  Its value is undefined at all other times.
        */
-    enum fcgi_parser_error error;
+    fcgi_iwire_error error;
+
+    const fcgi_iwire_settings * settings;
 
       /*! @public
        * @brief Extra field for client code's use.
@@ -103,43 +108,43 @@ struct fcgi_parser
     void * object;
 
     /* generic markers for begin/end of records. */
-    void(*accept_record)(struct fcgi_parser*, int, int, int);
+    void(*accept_record)(struct fcgi_iwire_t*, int, int, int);
       // FastCGI Version, Request ID, Content Length.
-    void(*finish_record)(struct fcgi_parser*);
+    void(*finish_record)(struct fcgi_iwire_t*);
 
     /* FCGI_BEGIN_REQUEST. */
-    void(*accept_request)(struct fcgi_parser*, int, int);
+    void(*accept_request)(struct fcgi_iwire_t*, int, int);
     // Role, Flags.
 
     /* FCGI_ABORT_REQUEST. */
-    void(*cancel_request)(struct fcgi_parser*);
+    void(*cancel_request)(struct fcgi_iwire_t*);
 
     /* FCGI_END_REQUEST */
-    void(*finish_request)(struct fcgi_parser*, uint32_t, int);
+    void(*finish_request)(struct fcgi_iwire_t*, uint32_t, int);
 
     /* FCGI_PARAMS */
-    void(*accept_param_name)(struct fcgi_parser*, const char *, size_t);
-    void(*accept_param_data)(struct fcgi_parser*, const char *, size_t);
+    void(*accept_param_name)(struct fcgi_iwire_t*, const char *, size_t);
+    void(*accept_param_data)(struct fcgi_iwire_t*, const char *, size_t);
 
     /* FCGI_GET_VALUES */
-    void(*accept_query_name)(struct fcgi_parser*, const char *, size_t);
-    void(*accept_query_data)(struct fcgi_parser*, const char *, size_t);
+    void(*accept_query_name)(struct fcgi_iwire_t*, const char *, size_t);
+    void(*accept_query_data)(struct fcgi_iwire_t*, const char *, size_t);
 
     /* FCGI_GET_VALUES_RESULT */
-    void(*accept_reply_name)(struct fcgi_parser*, const char *, size_t);
-    void(*accept_reply_data)(struct fcgi_parser*, const char *, size_t);
+    void(*accept_reply_name)(struct fcgi_iwire_t*, const char *, size_t);
+    void(*accept_reply_data)(struct fcgi_iwire_t*, const char *, size_t);
 
     /* FCGI_STDIN */
-    void(*accept_content_stdi)(struct fcgi_parser*, const char *, size_t);
+    void(*accept_content_stdi)(struct fcgi_iwire_t*, const char *, size_t);
 
     /* FCGI_STDOUT */
-    void(*accept_content_stdo)(struct fcgi_parser*, const char *, size_t);
+    void(*accept_content_stdo)(struct fcgi_iwire_t*, const char *, size_t);
 
     /* FCGI_STDERR */
-    void(*accept_content_stde)(struct fcgi_parser*, const char *, size_t);
+    void(*accept_content_stde)(struct fcgi_iwire_t*, const char *, size_t);
 
     /* FCGI_DATA */
-    void(*accept_content_data)(struct fcgi_parser*, const char *, size_t);
+    void(*accept_content_data)(struct fcgi_iwire_t*, const char *, size_t);
 
     /*! @private
      * @brief Number of bytes to skip until start of next record.
@@ -174,13 +179,14 @@ struct fcgi_parser
      * @brief Number of bytes left to forward in parameter value.
      */
     uint32_t vsize;
-};
+
+} fcgi_iwire;
 
   /*!
-   * @brief Initialize a parser and its limits.
+   * @brief Initialize a new parser.
    */
-void fcgi_setup
-    ( struct fcgi_limits * limits, struct fcgi_parser * parser );
+void fcgi_iwire_init
+    ( const fcgi_iwire_settings * settings, fcgi_iwire * stream );
 
   /*!
    * @brief Clear errors and reset the parser state.
@@ -189,10 +195,11 @@ void fcgi_setup
    * call it to re-use any parsing context, such as allocated buffers for
    * string contents.
    */
-void fcgi_clear ( struct fcgi_parser * parser );
+void fcgi_iwire_clear ( fcgi_iwire * stream );
 
   /*!
    * @brief Feed data to the parser.
+   * @param stream
    * @param data Pointer to first byte of data.
    * @param size Size of @a data, in bytes.
    * @return Number of bytes consumed.  Normally, this value is equal to
@@ -203,8 +210,7 @@ void fcgi_clear ( struct fcgi_parser * parser );
    * In particular, all data may be consumed before an error is reported, so
    * a return value equal to @a size is not a reliable indicator of success.
    */
-size_t fcgi_consume ( const struct fcgi_limits * limits,
-    struct fcgi_parser * parser, const char * data, size_t size );
+size_t fcgi_iwire_feed ( fcgi_iwire * stream, const char * data, size_t size );
 
 #ifdef __cplusplus
 }

@@ -83,7 +83,7 @@ namespace {
     const size_t SIZE4 = sizeof(DATA4);
 
     void accept_record
-        ( ::fcgi_parser * parser, int version, int request, int content )
+        ( ::fcgi_iwire * stream, int version, int request, int content )
     {
         std::cerr
             << "Accept record."
@@ -96,14 +96,14 @@ namespace {
         }
     }
 
-    void finish_record ( ::fcgi_parser * parser )
+    void finish_record ( ::fcgi_iwire * stream )
     {
         std::cerr
             << "Finish record."
             << std::endl;
     }
 
-    void accept_request ( ::fcgi_parser * parser, int role, int flags )
+    void accept_request ( ::fcgi_iwire * stream, int role, int flags )
     {
         std::cerr
             << "Accept request."
@@ -116,7 +116,7 @@ namespace {
         }
     }
 
-    void cancel_request ( ::fcgi_parser * parser )
+    void cancel_request ( ::fcgi_iwire * stream )
     {
         std::cerr
             << "Cancel request."
@@ -124,7 +124,7 @@ namespace {
     }
 
     void accept_content_stdi
-        ( ::fcgi_parser * parser, const char * data, size_t size )
+        ( ::fcgi_iwire * stream, const char * data, size_t size )
     {
         std::cout
             << "stdin: '" << std::string(data, size) << "'."
@@ -132,7 +132,7 @@ namespace {
     }
 
     void accept_param_name
-        ( ::fcgi_parser * parser, const char * data, size_t size )
+        ( ::fcgi_iwire * stream, const char * data, size_t size )
     {
         std::cout
             << "Name: '" << std::string(data, size) << "'."
@@ -140,7 +140,7 @@ namespace {
     }
 
     void accept_param_data
-        ( ::fcgi_parser * parser, const char * data, size_t size )
+        ( ::fcgi_iwire * stream, const char * data, size_t size )
     {
         std::cout
             << "Data: '" << std::string(data, size) << "'."
@@ -161,12 +161,11 @@ namespace {
     }
 
         // Feed [data, data+size) to parser in random increments.
-    void feed ( const ::fcgi_limits * limits, ::fcgi_parser * parser,
-        const char * data, std::size_t size )
+    void feed ( ::fcgi_iwire * stream, const char * data, std::size_t size )
     {
         std::srand((unsigned)std::time(0));
         for ( std::size_t i = 0; (i < size); ) {
-            i += ::fcgi_consume(limits, parser, data+i, random(1, size-i));
+            i += ::fcgi_iwire_feed(stream, data+i, random(1, size-i));
         }
     }
 
@@ -175,21 +174,21 @@ namespace {
 int main ( int, char ** )
 {
         // Setup FastCGI record parser.
-    ::fcgi_limits limits;
-    ::fcgi_parser parser;
-    ::fcgi_setup(&limits, &parser);
+    ::fcgi_iwire_settings limits;
+    ::fcgi_iwire stream;
+    ::fcgi_iwire_init(&limits, &stream);
         // Register callbacks.
-    parser.accept_record = &::accept_record;
-    parser.finish_record = &::finish_record;
-    parser.accept_request = &::accept_request;
-    parser.cancel_request = &::cancel_request;
-    parser.accept_param_name = &::accept_param_name;
-    parser.accept_param_data = &::accept_param_data;
-    parser.accept_content_stdi = &::accept_content_stdi;
+    stream.accept_record       = &::accept_record;
+    stream.finish_record       = &::finish_record;
+    stream.accept_request      = &::accept_request;
+    stream.cancel_request      = &::cancel_request;
+    stream.accept_param_name   = &::accept_param_name;
+    stream.accept_param_data   = &::accept_param_data;
+    stream.accept_content_stdi = &::accept_content_stdi;
         // Feed multiple requests.
-    ::feed(&limits, &parser, DATA1, SIZE1);
-    ::feed(&limits, &parser, DATA2, SIZE2);
-    ::feed(&limits, &parser, DATA3, SIZE3);
-    ::feed(&limits, &parser, DATA4, SIZE4);
-    ::feed(&limits, &parser, DATA3, SIZE3);
+    ::feed(&stream, DATA1, SIZE1);
+    ::feed(&stream, DATA2, SIZE2);
+    ::feed(&stream, DATA3, SIZE3);
+    ::feed(&stream, DATA4, SIZE4);
+    ::feed(&stream, DATA3, SIZE3);
 }
