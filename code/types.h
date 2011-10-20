@@ -17,6 +17,7 @@
 #include <stddef.h>
 
 typedef unsigned char uint8_t;
+typedef unsigned short uint16_t;
 typedef unsigned int uint32_t;
 
 #endif /* _fcgi_types_h__ */

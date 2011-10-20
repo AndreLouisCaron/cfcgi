@@ -14,6 +14,15 @@
  * @brief FastCGI wire protocol.
  */
 
+/*!
+ * @defgroup application Functions used by the application (script).
+ */
+
+/*!
+ * @defgroup gateway Functions used by the gateway (web server).
+ */
+
 #include "iwire.h"
+#include "owire.h"
 
 #endif /* _fcgi_h__ */
