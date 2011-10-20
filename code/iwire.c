@@ -79,8 +79,12 @@ static size_t fcgi_parse_header
         stream->accept_record(stream, version, request, stream->size);
           /* ditch staged data. */
         stream->staged = 0;
-          /* pass on to new state. */
-        stream->state = (fcgi_iwire_state)reqtype;
+          /* pass on to new state if there is a payload. */
+        if ( stream->size == 0 ) {
+            stream->state = fcgi_iwire_record_skip;
+        } else {
+            stream->state = (fcgi_iwire_state)reqtype;
+        }
     }
     return (used);
 }
