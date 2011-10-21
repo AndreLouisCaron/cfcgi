@@ -55,9 +55,29 @@ namespace fcgi {
             ::fcgi_owire_param(&myWire, request, data, size);
         }
 
+        void param ( uint16_t request, const std::string& record )
+        {
+            param(request, record.data(), record.size());
+        }
+
+        void param ( uint16_t request )
+        {
+            param(request, 0, 0);
+        }
+
         void stdi ( uint16_t request, const char * data, size_t size )
         {
             ::fcgi_owire_stdi(&myWire, request, data, size);
+        }
+
+        void stdi ( uint16_t request, const std::string& record )
+        {
+            stdi(request, record.data(), record.size());
+        }
+
+        void stdi ( uint16_t request )
+        {
+            stdi(request, 0, 0);
         }
 
         void stdo ( uint16_t request, const char * data, size_t size )
@@ -65,9 +85,29 @@ namespace fcgi {
             ::fcgi_owire_stdo(&myWire, request, data, size);
         }
 
+        void stdo ( uint16_t request, const std::string& record )
+        {
+            stdo(request, record.data(), record.size());
+        }
+
+        void stdo ( uint16_t request )
+        {
+            stdo(request, 0, 0);
+        }
+
         void stde ( uint16_t request, const char * data, size_t size )
         {
             ::fcgi_owire_stde(&myWire, request, data, size);
+        }
+
+        void stde ( uint16_t request, const std::string& record )
+        {
+            stde(request, record.data(), record.size());
+        }
+
+        void stde ( uint16_t request )
+        {
+            stde(request, 0, 0);
         }
 
         void extra ( uint16_t request, const char * data, size_t size )
@@ -75,14 +115,44 @@ namespace fcgi {
             ::fcgi_owire_extra(&myWire, request, data, size);
         }
 
+        void extra ( uint16_t request, const std::string& record )
+        {
+            extra(request, record.data(), record.size());
+        }
+
+        void extra ( uint16_t request )
+        {
+            extra(request, 0, 0);
+        }
+
         void query ( uint16_t request, const char * data, uint16_t size )
         {
             ::fcgi_owire_query(&myWire, request, data, size);
         }
 
+        void query ( uint16_t request, const std::string& record )
+        {
+            query(request, record.data(), record.size());
+        }
+
+        void query ( uint16_t request )
+        {
+            query(request, 0, 0);
+        }
+
         void reply ( uint16_t request, const char * data, uint16_t size )
         {
             ::fcgi_owire_query(&myWire, request, data, size);
+        }
+
+        void reply ( uint16_t request, const std::string& record )
+        {
+            reply(request, record.data(), record.size());
+        }
+
+        void reply ( uint16_t request )
+        {
+            reply(request, 0, 0);
         }
 
         /* class methods. */

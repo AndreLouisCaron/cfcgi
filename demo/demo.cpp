@@ -228,21 +228,31 @@ void owire_test ()
 
 #include <sstream>
 
-std::string ostream_test ()
+std::string ostream_request ()
 {
     std::ostringstream buffer;
     fcgi::ostream stream(buffer);
       // start request.
     stream.new_request(1, 1);
       // send request headers.
-    { const char data[] = "\013\002SERVER_PORT80";
-        stream.param(1, data, sizeof(data)-1);
-    } stream.param(1, 0, 0);
+    stream.param(1, "\013\002SERVER_PORT80");
+    stream.param(1);
       // send request body.
-    { const char data[] = "Hello, world!";
-        stream.stdi(1, data, sizeof(data)-1);
-    } stream.stdi(1, 0, 0);
+    stream.stdi(1, "Hello, application!");
+    stream.stdi(1);
       // request complete.
+    return (buffer.str());
+}
+
+std::string ostream_response ()
+{
+    std::ostringstream buffer;
+    fcgi::ostream stream(buffer);
+      // send response body.
+    stream.stdo(1, "Hello, gateway!");
+    stream.stdo(1);
+      // response complete.
+    stream.end_request(1, 0, 0);
     return (buffer.str());
 }
 
@@ -253,5 +263,6 @@ void istream_test ( const std::string& buffer )
 
 int main ( int, char ** )
 {
-    istream_test(ostream_test());
+    istream_test(ostream_request());
+    istream_test(ostream_response());
 }
