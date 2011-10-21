@@ -245,6 +245,7 @@ std::string ostream_request ()
 }
 
 std::string ostream_response ()
+try
 {
     std::ostringstream buffer;
     fcgi::ostream stream(buffer);
@@ -252,7 +253,18 @@ std::string ostream_response ()
     stream.stdo(1, "Hello, gateway!");
     stream.stdo(1);
       // response complete.
-    stream.end_request(1);
+    stream.end_request(1, EXIT_SUCCESS);
+    return (buffer.str());
+}
+catch ( const std::exception& error )
+{
+    std::ostringstream buffer;
+    fcgi::ostream stream(buffer);
+      // send response body.
+    stream.stde(1, error.what());
+    stream.stde(1);
+      // response complete.
+    stream.end_request(1, EXIT_FAILURE);
     return (buffer.str());
 }
 
