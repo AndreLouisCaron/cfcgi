@@ -117,7 +117,7 @@ typedef struct fcgi_iwire_t
     void(*cancel_request)(struct fcgi_iwire_t*);
 
     /* FCGI_END_REQUEST */
-    void(*finish_request)(struct fcgi_iwire_t*, uint32_t, int);
+    void(*finish_request)(struct fcgi_iwire_t*, uint32_t, uint8_t);
 
     /* FCGI_PARAMS */
     void(*accept_param_name)(struct fcgi_iwire_t*, const char *, size_t);
