@@ -108,8 +108,8 @@ size_t fcgi_owire_bad_request
    * @ingroup application
    * @brief Release a request ID.
    */
-size_t fcgi_owire_end_request
-    ( fcgi_owire * stream, uint16_t request );
+size_t fcgi_owire_end_request ( fcgi_owire * stream,
+    uint16_t request, uint32_t astatus, uint8_t pstatus );
 
   /*!
    * @ingroup gateway

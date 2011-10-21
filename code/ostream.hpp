@@ -45,9 +45,9 @@ namespace fcgi {
             ::fcgi_owire_bad_request(&myWire, request);
         }
 
-        void end_request ( uint16_t request )
+        void end_request ( uint16_t request, uint32_t astatus, uint8_t pstatus )
         {
-            ::fcgi_owire_bad_request(&myWire, request);
+            ::fcgi_owire_end_request(&myWire, request, astatus, pstatus);
         }
 
         void param ( uint16_t request, const char * data, uint16_t size )

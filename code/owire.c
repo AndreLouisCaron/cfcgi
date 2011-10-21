@@ -71,9 +71,16 @@ size_t fcgi_owire_bad_request ( fcgi_owire * stream, uint16_t request )
     _fcgi_owire_send(stream, request, 2, 0, 0); return (0);
 }
 
-size_t fcgi_owire_end_request ( fcgi_owire * stream, uint16_t request )
+size_t fcgi_owire_end_request
+    ( fcgi_owire * stream, uint16_t request, uint32_t astatus, uint8_t pstatus )
 {
-    _fcgi_owire_send(stream, request, 3, 0, 0); return (0);
+    const char body[8] = {
+        ((astatus>>24)&0xff), ((astatus>>16)&0xff), // application status
+        ((astatus>> 8)&0xff), ((astatus>> 0)&0xff), // (continued)
+        pstatus,                                    // protocol status
+        0, 0, 0,                                    // reserved
+    };
+    _fcgi_owire_send(stream, request, 3, body, 8); return (0);
 }
 
 size_t fcgi_owire_param
