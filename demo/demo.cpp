@@ -252,7 +252,7 @@ std::string ostream_response ()
     stream.stdo(1, "Hello, gateway!");
     stream.stdo(1);
       // response complete.
-    stream.end_request(1, 0, 0);
+    stream.end_request(1);
     return (buffer.str());
 }
 

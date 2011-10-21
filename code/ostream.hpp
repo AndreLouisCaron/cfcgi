@@ -45,9 +45,25 @@ namespace fcgi {
             ::fcgi_owire_bad_request(&myWire, request);
         }
 
-        void end_request ( uint16_t request, uint32_t astatus, uint8_t pstatus )
+        void end_request
+            ( uint16_t request, uint32_t astatus=0, uint8_t pstatus=0 )
         {
             ::fcgi_owire_end_request(&myWire, request, astatus, pstatus);
+        }
+
+        void cant_multiplex ( uint16_t request, uint32_t astatus=0 )
+        {
+            end_request(request, astatus, 1);
+        }
+
+        void overloaded ( uint16_t request, uint32_t astatus=0 )
+        {
+            end_request(request, astatus, 2);
+        }
+
+        void unknown_role ( uint16_t request, uint32_t astatus=0 )
+        {
+            end_request(request, astatus, 3);
         }
 
         void param ( uint16_t request, const char * data, uint16_t size )
