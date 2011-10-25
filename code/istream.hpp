@@ -21,6 +21,10 @@ namespace fcgi {
         ::fcgi_iwire_settings mySettings;
         ::fcgi_iwire myWire;
 
+        std::string myPName; std::string myPData;
+        std::string myQName; std::string myQData;
+        std::string myRName; std::string myRData;
+
         /* construction. */
     public:
         istream ()
@@ -35,6 +39,13 @@ namespace fcgi {
             myWire.finish_request      = &istream::finish_request;
             myWire.accept_param_name   = &istream::accept_param_name;
             myWire.accept_param_data   = &istream::accept_param_data;
+            myWire.accept_param        = &istream::accept_param;
+            myWire.accept_query_name   = &istream::accept_query_name;
+            myWire.accept_query_data   = &istream::accept_query_data;
+            myWire.accept_query        = &istream::accept_query;
+            myWire.accept_reply_name   = &istream::accept_reply_name;
+            myWire.accept_reply_data   = &istream::accept_reply_data;
+            myWire.accept_reply        = &istream::accept_reply;
             myWire.accept_content_stdi = &istream::accept_content_stdi;
             myWire.accept_content_stdo = &istream::accept_content_stdo;
             myWire.accept_content_stde = &istream::accept_content_stde;
@@ -87,37 +98,88 @@ namespace fcgi {
         {
             param_name(std::string(data, size));
         }
-        virtual void param_name ( const std::string& ) {}
+
+        virtual void param_name ( const std::string& name )
+        {
+            myPName = name;
+        }
 
         virtual void param_data ( const char * data, size_t size )
         {
             param_data(std::string(data, size));
         }
-        virtual void param_data ( const std::string& ) {}
+
+        virtual void param_data ( const std::string& data )
+        {
+            myPData = data;
+        }
+
+        virtual void param ()
+        {
+            param(myPName, myPData), myPName.clear(), myPData.clear();
+        }
+
+        virtual void param ( const std::string& name, const std::string& data )
+        {
+        }
 
         virtual void query_name ( const char * data, size_t size )
         {
             query_name(std::string(data, size));
         }
-        virtual void query_name ( const std::string& ) {}
+
+        virtual void query_name ( const std::string& name )
+        {
+            myQName = name;
+        }
 
         virtual void query_data ( const char * data, size_t size )
         {
             query_data(std::string(data, size));
         }
-        virtual void query_data ( const std::string& ) {}
+
+        virtual void query_data ( const std::string& data )
+        {
+            myQData = data;
+        }
+
+        virtual void query ()
+        {
+            query(myQName, myQData), myQName.clear(), myQData.clear();
+        }
+
+        virtual void query ( const std::string& name, const std::string& data )
+        {
+        }
 
         virtual void reply_name ( const char * data, size_t size )
         {
             reply_name(std::string(data, size));
         }
-        virtual void reply_name ( const std::string& ) {}
+
+        virtual void reply_name ( const std::string& name )
+        {
+            myRName = name;
+        }
 
         virtual void reply_data ( const char * data, size_t size )
         {
             reply_data(std::string(data, size));
         }
-        virtual void reply_data ( const std::string& data ) {}
+
+        virtual void reply_data ( const std::string& data )
+        {
+            myRData = data;
+        }
+
+        virtual void reply ()
+        {
+            reply(myRName, myRData), myRName.clear(), myRData.clear();
+        }
+
+        virtual void reply ( const std::string& name, const std::string& data )
+        {
+        }
 
         virtual void stdi ( const char * data, size_t size )
         {
@@ -196,6 +258,11 @@ namespace fcgi {
             static_cast<istream*>(stream->object)->param_data(data, size);
         }
 
+        static void accept_param ( ::fcgi_iwire * stream )
+        {
+            static_cast<istream*>(stream->object)->param();
+        }
+
         static void accept_query_name
             ( ::fcgi_iwire * stream, const char * data, size_t size )
         {
@@ -208,6 +275,11 @@ namespace fcgi {
             static_cast<istream*>(stream->object)->query_data(data, size);
         }
 
+        static void accept_query ( ::fcgi_iwire * stream )
+        {
+            static_cast<istream*>(stream->object)->query();
+        }
+
         static void accept_reply_name
             ( ::fcgi_iwire * stream, const char * data, size_t size )
         {
@@ -218,6 +290,11 @@ namespace fcgi {
             ( ::fcgi_iwire * stream, const char * data, size_t size )
         {
             static_cast<istream*>(stream->object)->reply_data(data, size);
+        }
+
+        static void accept_reply ( ::fcgi_iwire * stream )
+        {
+            static_cast<istream*>(stream->object)->reply();
         }
     };
 
