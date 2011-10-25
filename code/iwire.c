@@ -14,6 +14,9 @@
 #include "iwire.h"
 #include <string.h>
 
+typedef size_t(*fcgi_request_handler)(fcgi_iwire*,const char*,size_t);
+static const fcgi_request_handler fcgi_request_handlers[10];
+
 static const char * fcgi_iwire_error_messages[] =
 {
     "no error, parser ok",
@@ -79,6 +82,12 @@ static size_t fcgi_parse_header
         stream->accept_record(stream, version, request, stream->size);
           /* ditch staged data. */
         stream->staged = 0;
+          /* for stream records with empty payload, signal end of stream. */
+        if ((reqtype >= fcgi_iwire_record_stdi) &&
+            (reqtype <= fcgi_iwire_record_data) && (stream->size == 0))
+        {
+            fcgi_request_handlers[reqtype-1](stream, 0, 0);
+        }
           /* pass on to new state if there is a payload. */
         if ( stream->size == 0 ) {
             stream->state = fcgi_iwire_record_skip;
@@ -205,8 +214,6 @@ static size_t fcgi_accept_stuff (
     return (used);
 }
 
-typedef size_t(*fcgi_request_handler)(fcgi_iwire*,const char*,size_t);
-
 static size_t FCGI_BEGIN_REQUEST
     ( fcgi_iwire * stream, const char * data, size_t size )
 {
@@ -293,6 +300,10 @@ static size_t FCGI_STDIN
 {
       /* consume as much data as possible. */
     size_t used = _fcgi_iwire_min(stream->size, size);
+      /* don't forward empty record until we actually have none left. */
+    if ((stream->size > 0) && (used == 0)) {
+        return (used);
+    }
     stream->accept_content_stdi(stream, data, used);
       /* adjust parser state. */
     stream->size -= used;
@@ -307,6 +318,10 @@ static size_t FCGI_STDOUT
 {
       /* consume as much data as possible. */
     size_t used = _fcgi_iwire_min(stream->size, size);
+      /* don't forward empty record until we actually have none left. */
+    if ((stream->size > 0) && (used == 0)) {
+        return (used);
+    }
     stream->accept_content_stdo(stream, data, size);
       /* adjust parser state. */
     stream->size -= used;
@@ -321,6 +336,10 @@ static size_t FCGI_STDERR
 {
       /* consume as much data as possible. */
     size_t used = _fcgi_iwire_min(stream->size, size);
+      /* don't forward empty record until we actually have none left. */
+    if ((stream->size > 0) && (used == 0)) {
+        return (used);
+    }
     stream->accept_content_stde(stream, data, size);
       /* adjust parser state. */
     stream->size -= used;
