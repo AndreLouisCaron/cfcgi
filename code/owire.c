@@ -142,13 +142,13 @@ size_t fcgi_owire_extra
 }
 
 size_t fcgi_owire_query
-    ( fcgi_owire * stream, uint16_t request, const char * data, uint16_t size )
+    ( fcgi_owire * stream, const char * data, uint16_t size )
 {
-    _fcgi_owire_send(stream, request, 9, data, size); return (size);
+    _fcgi_owire_send(stream, 0, 9, data, size); return (size);
 }
 
 size_t fcgi_owire_reply
-    ( fcgi_owire * stream, uint16_t request, const char * data, uint16_t size )
+    ( fcgi_owire * stream, const char * data, uint16_t size )
 {
-    _fcgi_owire_send(stream, request, 10, data, size); return (size);
+    _fcgi_owire_send(stream, 0, 10, data, size); return (size);
 }

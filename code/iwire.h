@@ -122,14 +122,17 @@ typedef struct fcgi_iwire_t
     /* FCGI_PARAMS */
     void(*accept_param_name)(struct fcgi_iwire_t*, const char *, size_t);
     void(*accept_param_data)(struct fcgi_iwire_t*, const char *, size_t);
+    void(*accept_param)(struct fcgi_iwire_t*);
 
     /* FCGI_GET_VALUES */
     void(*accept_query_name)(struct fcgi_iwire_t*, const char *, size_t);
     void(*accept_query_data)(struct fcgi_iwire_t*, const char *, size_t);
+    void(*accept_query)(struct fcgi_iwire_t*);
 
     /* FCGI_GET_VALUES_RESULT */
     void(*accept_reply_name)(struct fcgi_iwire_t*, const char *, size_t);
     void(*accept_reply_data)(struct fcgi_iwire_t*, const char *, size_t);
+    void(*accept_reply)(struct fcgi_iwire_t*);
 
     /* FCGI_STDIN */
     void(*accept_content_stdi)(struct fcgi_iwire_t*, const char *, size_t);

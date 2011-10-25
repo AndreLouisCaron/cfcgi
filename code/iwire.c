@@ -107,6 +107,7 @@ static size_t fcgi_skip_padding
 }
 
 typedef void(*accept_stuff)(fcgi_iwire*, const char *, size_t);
+typedef void(*accept_ended)(fcgi_iwire*);
 
 static size_t fcgi_forward_stuff_name ( fcgi_iwire * stream,
     const char * data, size_t size, accept_stuff accept_name )
@@ -130,7 +131,7 @@ static size_t fcgi_forward_stuff_data ( fcgi_iwire * stream,
 
 static size_t fcgi_accept_stuff (
     fcgi_iwire * stream, const char * data, size_t size,
-    accept_stuff accept_name, accept_stuff accept_data )
+    accept_ended complete, accept_stuff accept_name, accept_stuff accept_data )
 {
     int n = 0;
     size_t used = 0;
@@ -198,6 +199,7 @@ static size_t fcgi_accept_stuff (
       /* update parser state. */
     stream->size -= used;
     if ( stream->size == 0 ) {
+        complete(stream);
         stream->state = fcgi_iwire_record_skip;
     }
     return (used);
@@ -268,21 +270,21 @@ static size_t FCGI_END_REQUEST
 static size_t FCGI_PARAMS
     ( fcgi_iwire * stream, const char * data, size_t size )
 {
-    return (fcgi_accept_stuff(stream, data, size,
+    return (fcgi_accept_stuff(stream, data, size, stream->accept_param,
         stream->accept_param_name, stream->accept_param_data));
 }
 
 static size_t FCGI_GET_VALUES
     ( fcgi_iwire * stream, const char * data, size_t size )
 {
-    return (fcgi_accept_stuff(stream, data, size,
+    return (fcgi_accept_stuff(stream, data, size, stream->accept_query,
         stream->accept_query_name, stream->accept_query_data));
 }
 
 static size_t FCGI_GET_VALUES_RESULT
     ( fcgi_iwire * stream, const char * data, size_t size )
 {
-    return (fcgi_accept_stuff(stream, data, size,
+    return (fcgi_accept_stuff(stream, data, size, stream->accept_reply,
         stream->accept_reply_name, stream->accept_reply_data));
 }
 

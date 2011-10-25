@@ -151,14 +151,14 @@ size_t fcgi_owire_extra
    * @brief Request information from the application.
    */
 size_t fcgi_owire_query
-    ( fcgi_owire * stream, uint16_t request, const char * data, uint16_t size );
+    ( fcgi_owire * stream, const char * data, uint16_t size );
 
   /*!
    * @ingroup application
    * @brief Send gateway a responsea to a request.
    */
 size_t fcgi_owire_reply
-    ( fcgi_owire * stream, uint16_t request, const char * data, uint16_t size );
+    ( fcgi_owire * stream, const char * data, uint16_t size );
 
 #ifdef __cplusplus
 }

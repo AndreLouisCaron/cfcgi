@@ -141,34 +141,24 @@ namespace fcgi {
             extra(request, 0, 0);
         }
 
-        void query ( uint16_t request, const char * data, uint16_t size )
+        void query ( const char * data, uint16_t size )
         {
-            ::fcgi_owire_query(&myWire, request, data, size);
+            ::fcgi_owire_query(&myWire, data, size);
         }
 
-        void query ( uint16_t request, const std::string& record )
+        void query ( const std::string& record )
         {
-            query(request, record.data(), record.size());
+            query(record.data(), record.size());
         }
 
-        void query ( uint16_t request )
+        void reply ( const char * data, uint16_t size )
         {
-            query(request, 0, 0);
+            ::fcgi_owire_query(&myWire, data, size);
         }
 
-        void reply ( uint16_t request, const char * data, uint16_t size )
+        void reply ( const std::string& record )
         {
-            ::fcgi_owire_query(&myWire, request, data, size);
-        }
-
-        void reply ( uint16_t request, const std::string& record )
-        {
-            reply(request, record.data(), record.size());
-        }
-
-        void reply ( uint16_t request )
-        {
-            reply(request, 0, 0);
+            reply(record.data(), record.size());
         }
 
         /* class methods. */
