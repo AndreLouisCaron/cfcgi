@@ -270,11 +270,144 @@ catch ( const std::exception& error )
 
 void istream_test ( const std::string& buffer )
 {
-    fcgi::istream().feed(buffer);
+    class istream :
+        public fcgi::istream
+    {
+        virtual void param ( const std::string& name, const std::string& data )
+        {
+            std::cout
+                << "param(" << name << "='" << data << "')"
+                << std::endl;
+        }
+
+        virtual void query ( const std::string& name, const std::string& data )
+        {
+            std::cout
+                << "query(" << name << "='" << data << "')"
+                << std::endl;
+        }
+
+        virtual void reply ( const std::string& name, const std::string& data )
+        {
+            std::cout
+                << "reply(" << name << "='" << data << "')"
+                << std::endl;
+        }
+    };
+    istream().feed(buffer);
+}
+
+void advanced_test ()
+{
+    class Test :
+        public fcgi::Gateway,
+        public fcgi::Application
+    {
+        /* gateway. */
+    protected:
+        virtual void gsend ( const std::string& data )
+        {
+            Application::afeed(data);
+        }
+
+        virtual void reply
+            ( const std::string& name, const std::string& data )
+        {
+            std::cout
+                << name << "=" << data
+                << std::endl;
+            if ( name == "FCGI_MAX_CONNS" )
+            {
+            }
+            if ( name == "FCGI_MAX_REQS" )
+            {
+            }
+            if ( name == "FCGI_MPXS_CONNS" )
+            {
+            }
+        }
+
+        virtual void complete ( fcgi::Response& response )
+        {
+            std::cout
+                << "Output='" << response.output() << "'."
+                << "Errors='" << response.errors() << "'."
+                << std::endl;
+        }
+
+        /* application. */
+    protected:
+        virtual void asend ( const std::string& data )
+        {
+            Gateway::gfeed(data);
+        }
+
+        virtual void query
+            ( const std::string& name, const std::string& data )
+        {
+            std::cout
+                << name << "=? ('" << data << "')"
+                << std::endl;
+            if ( name == "FCGI_MAX_CONNS" )
+            {
+                  // number of children..?
+                Application::reply(name, "1");
+            }
+            if ( name == "FCGI_MAX_REQS" )
+            {
+                  // don't multiplex.
+                Application::reply(name, "1");
+            }
+            if ( name == "FCGI_MPXS_CONNS" )
+            {
+                  // don't multiplex.
+                Application::reply(name, "0");
+            }
+        }
+
+        virtual void end_of_head ( fcgi::Request& request )
+        {
+            std::cout
+                << "Head='" << "..." << "'."
+                << std::endl;
+        }
+
+        virtual void end_of_body ( fcgi::Request& request )
+        {
+            std::cout
+                << "Body='" << request.body() << "'."
+                << std::endl;
+            
+              // send response.
+            Application::output("Hello, FastCGI gateway!");
+            Application::output();
+            
+              // complete request.
+            Application::end_request();
+        }
+    };
+    
+      // start the "connection".
+    Test test;
+    test.Gateway::query("FCGI_MAX_CONNS");
+    test.Gateway::query("FCGI_MAX_REQS");
+    test.Gateway::query("FCGI_MPXS_CONNS");
+    
+      // start a request.
+    test.Gateway::new_request(1);
+    
+      // send request headers.
+    test.Gateway::head("Authorization", "QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
+    test.Gateway::head();
+    
+      // send request content.
+    test.Gateway::body("Hello, FastCGI application!");
+    test.Gateway::body();
 }
 
 int main ( int, char ** )
 {
-    istream_test(ostream_request());
-    istream_test(ostream_response());
+    /*istream_test(ostream_request());
+    istream_test(ostream_response());*/
+    advanced_test();
 }

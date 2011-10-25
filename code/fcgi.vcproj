@@ -147,16 +147,48 @@
 	<References>
 	</References>
 	<Files>
+		<Filter
+			Name="wrapper"
+			>
+			<File
+				RelativePath=".\Application.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Application.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\fcgi.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Gateway.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Gateway.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\istream.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ostream.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Request.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Response.hpp"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\fcgi.h"
-			>
-		</File>
-		<File
-			RelativePath=".\fcgi.hpp"
-			>
-		</File>
-		<File
-			RelativePath=".\istream.hpp"
 			>
 		</File>
 		<File
@@ -165,10 +197,6 @@
 		</File>
 		<File
 			RelativePath=".\iwire.h"
-			>
-		</File>
-		<File
-			RelativePath=".\ostream.hpp"
 			>
 		</File>
 		<File

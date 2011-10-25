@@ -18,4 +18,9 @@ namespace fcgi {}
 #include "istream.hpp"
 #include "ostream.hpp"
 
+#include "Application.hpp"
+#include "Gateway.hpp"
+#include "Request.hpp"
+#include "Response.hpp"
+
 #endif /* _fcgi_hpp__ */
