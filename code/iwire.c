@@ -83,7 +83,7 @@ static size_t fcgi_parse_header
           /* ditch staged data. */
         stream->staged = 0;
           /* for stream records with empty payload, signal end of stream. */
-        if ((reqtype >= fcgi_iwire_record_stdi) &&
+        if ((reqtype >= fcgi_iwire_record_meta) &&
             (reqtype <= fcgi_iwire_record_data) && (stream->size == 0))
         {
             fcgi_request_handlers[reqtype-1](stream, 0, 0);
@@ -277,8 +277,21 @@ static size_t FCGI_END_REQUEST
 static size_t FCGI_PARAMS
     ( fcgi_iwire * stream, const char * data, size_t size )
 {
-    return (fcgi_accept_stuff(stream, data, size, stream->accept_param,
-        stream->accept_param_name, stream->accept_param_data));
+      /* consume as much data as possible. */
+    size_t used = _fcgi_iwire_min(stream->size, size);
+      /* finish parsing if we catch an empty payload. */
+    if ((stream->size == 0) && stream->finish_headers ) {
+        stream->finish_headers(stream);
+    }
+      /* forward data as usual. */
+    if ( stream->accept_headers ) {
+        stream->accept_headers(stream, data, size);
+    }
+    stream->size -= used;
+    if ( stream->size == 0 ) {
+        stream->state = fcgi_iwire_record_skip;
+    }
+    return (used);
 }
 
 static size_t FCGI_GET_VALUES
@@ -354,6 +367,15 @@ static size_t FCGI_DATA
 {
       /* consume as much data as possible. */
     size_t used = _fcgi_iwire_min(stream->size, size);
+      /* signal end of headers when possible. */
+    if ( stream->size == 0 )
+    {
+        if ( stream->finish_headers ) {
+            stream->finish_headers(stream);
+        }
+        stream->state = fcgi_iwire_record_skip;
+        return (used);
+    }
     stream->accept_content_data(stream, data, size);
       /* adjust parser state. */
     stream->size -= used;
@@ -394,8 +416,8 @@ void fcgi_iwire_init
     stream->accept_request = 0;
     stream->cancel_request = 0;
     stream->finish_request = 0;
-    stream->accept_param_name = 0;
-    stream->accept_param_data = 0;
+    stream->accept_headers = 0;
+    stream->finish_headers = 0;
     stream->accept_query_name = 0;
     stream->accept_query_data = 0;
     stream->accept_reply_name = 0;

@@ -188,6 +188,22 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Headers.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Headers.hpp"
+			>
+		</File>
+		<File
+			RelativePath=".\ipstream.c"
+			>
+		</File>
+		<File
+			RelativePath=".\ipstream.h"
+			>
+		</File>
+		<File
 			RelativePath=".\iwire.c"
 			>
 		</File>

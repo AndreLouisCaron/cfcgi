@@ -9,8 +9,7 @@
 // "http://www.opensource.org/licenses/mit".
 
 #include "fcgi.h"
-#include <map>
-#include <string>
+#include "Headers.hpp"
 
 namespace fcgi {
 
@@ -23,12 +22,10 @@ namespace fcgi {
     public:
         typedef uint16_t Id;
 
-        typedef std::map<std::string, std::string> Head;
-
         /* data. */
     private:
         const Id myId;
-        std::string myHead;
+        Headers myHead;
         std::string myBody;
 
         bool myPrepared;
@@ -37,7 +34,7 @@ namespace fcgi {
         /* construction. */
     public:
         Request ( Id id )
-            : myId(id)
+            : myId(id), myHead()
         {}
 
         /* methods. */
@@ -53,12 +50,22 @@ namespace fcgi {
             myBody.clear();
         }
 
-        Head head () const
+        Headers& head ()
         {
-            return (Head());
+            return (myHead);
+        }
+
+        const Headers& head () const
+        {
+            return (myHead);
         }
 
         std::string& body ()
+        {
+            return (myBody);
+        }
+
+        const std::string& body () const
         {
             return (myBody);
         }

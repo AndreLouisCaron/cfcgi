@@ -22,6 +22,7 @@
  * @defgroup gateway Functions used by the gateway (web server).
  */
 
+#include "ipstream.h"
 #include "iwire.h"
 #include "owire.h"
 

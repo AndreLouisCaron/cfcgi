@@ -120,9 +120,8 @@ typedef struct fcgi_iwire_t
     void(*finish_request)(struct fcgi_iwire_t*, uint32_t, uint8_t);
 
     /* FCGI_PARAMS */
-    void(*accept_param_name)(struct fcgi_iwire_t*, const char *, size_t);
-    void(*accept_param_data)(struct fcgi_iwire_t*, const char *, size_t);
-    void(*accept_param)(struct fcgi_iwire_t*);
+    void(*accept_headers)(struct fcgi_iwire_t*, const char *, size_t);
+    void(*finish_headers)(struct fcgi_iwire_t*);
 
     /* FCGI_GET_VALUES */
     void(*accept_query_name)(struct fcgi_iwire_t*, const char *, size_t);

@@ -19,6 +19,7 @@ namespace fcgi {}
 
 #include "Application.hpp"
 #include "Gateway.hpp"
+#include "Headers.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
 

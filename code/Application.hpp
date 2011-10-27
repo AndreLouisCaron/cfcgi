@@ -108,11 +108,9 @@ namespace fcgi {
         static void accept_request
             ( ::fcgi_iwire * stream, int role, int flags );
 
-        static void accept_param_name
+        static void accept_headers
             ( ::fcgi_iwire * stream, const char * data, size_t size );
-        static void accept_param_data
-            ( ::fcgi_iwire * stream, const char * data, size_t size );
-        static void accept_param ( ::fcgi_iwire * stream );
+        static void finish_headers ( ::fcgi_iwire * stream );
 
         static void accept_content_stdi
             ( ::fcgi_iwire * stream, const char * data, size_t size );

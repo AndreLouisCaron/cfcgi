@@ -132,14 +132,6 @@ namespace {
             << std::endl;
     }
 
-    void accept_param_name
-        ( ::fcgi_iwire * stream, const char * data, size_t size )
-    {
-        std::cout
-            << "Name: '" << std::string(data, size) << "'."
-            << std::endl;
-    }
-
     void accept_param_data
         ( ::fcgi_iwire * stream, const char * data, size_t size )
     {
@@ -195,8 +187,8 @@ void iwire_test ()
     stream.finish_record       = &::finish_record;
     stream.accept_request      = &::accept_request;
     stream.cancel_request      = &::cancel_request;
-    stream.accept_param_name   = &::accept_param_name;
-    stream.accept_param_data   = &::accept_param_data;
+    //stream.accept_headers      = &::accept_headers;
+    //stream.finish_headers      = &::finish_headers;
     stream.accept_content_stdi = &::accept_content_stdi;
         // Feed multiple requests.
     ::feed(&stream, DATA1, SIZE1);
@@ -302,7 +294,9 @@ void advanced_test ()
         {
             std::cout
                 << "Output='" << response.output() << "'."
+                << std::endl
                 << "Errors='" << response.errors() << "'."
+                << std::endl
                 << std::endl;
         }
 
@@ -338,8 +332,19 @@ void advanced_test ()
 
         virtual void end_of_head ( fcgi::Request& request )
         {
+            const fcgi::Headers& headers = request.head();
             std::cout
-                << "Head='" << "..." << "'."
+                << "Head:"
+                << std::endl;
+            fcgi::Headers::const_iterator current = headers.begin();
+            const fcgi::Headers::const_iterator end = headers.end();
+            for ( ; (current != end); ++current )
+            {
+                std::cout
+                    << "  " << current->first << "='" << current->second << "'."
+                    << std::endl;
+            }
+            std::cout
                 << std::endl;
         }
 
@@ -351,6 +356,8 @@ void advanced_test ()
             
               // send response.
             Application::output("Hello, FastCGI gateway!");
+            Application::output();
+            Application::errors("That was easy!");
             Application::output();
             
               // complete request.

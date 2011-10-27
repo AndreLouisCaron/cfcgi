@@ -22,9 +22,8 @@ namespace fcgi {
         myIWire.accept_query_data   = &Application::accept_query_data;
         myIWire.accept_query        = &Application::accept_query;
         myIWire.accept_request      = &Application::accept_request;
-        myIWire.accept_param_name   = &Application::accept_param_name;
-        myIWire.accept_param_data   = &Application::accept_param_data;
-        myIWire.accept_param        = &Application::accept_param;
+        myIWire.accept_headers      = &Application::accept_headers;
+        myIWire.finish_headers      = &Application::finish_headers;
         myIWire.accept_content_stdi = &Application::accept_content_stdi;
         
         ::fcgi_owire_init(&myOSettings, &myOWire);
@@ -169,29 +168,8 @@ namespace fcgi {
     {
     }
 
-    void Application::accept_param_name
+    void Application::accept_headers
         ( ::fcgi_iwire * stream, const char * data, size_t size )
-    {
-        Application& application = *static_cast<Application*>(stream->object);
-          // ignore invalid records.
-        if ( application.mySelection == application.myRequests.end() ) {
-            return;
-        }
-        application.myPName.append(data, size);
-    }
-
-    void Application::accept_param_data
-        ( ::fcgi_iwire * stream, const char * data, size_t size )
-    {
-        Application& application = *static_cast<Application*>(stream->object);
-          // ignore invalid records.
-        if ( application.mySelection == application.myRequests.end() ) {
-            return;
-        }
-        application.myPData.append(data, size);
-    }
-
-    void Application::accept_param ( ::fcgi_iwire * stream )
     {
         Application& application = *static_cast<Application*>(stream->object);
           // ignore invalid records.
@@ -199,8 +177,19 @@ namespace fcgi {
             return;
         }
         Request& request = application.mySelection->second;
-        request.head().insert(
-            std::make_pair(application.myPName, application.myPData));
+        request.head().feed(data, size);
+    }
+
+    void Application::finish_headers ( ::fcgi_iwire * stream )
+    {
+        Application& application = *static_cast<Application*>(stream->object);
+          // ignore invalid records.
+        if ( application.mySelection == application.myRequests.end() ) {
+            return;
+        }
+        Request& request = application.mySelection->second;
+        request.prepared(true);
+        application.end_of_head(request);
     }
 
     void Application::accept_content_stdi
