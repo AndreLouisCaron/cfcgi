@@ -268,35 +268,6 @@ catch ( const std::exception& error )
     return (buffer.str());
 }
 
-void istream_test ( const std::string& buffer )
-{
-    class istream :
-        public fcgi::istream
-    {
-        virtual void param ( const std::string& name, const std::string& data )
-        {
-            std::cout
-                << "param(" << name << "='" << data << "')"
-                << std::endl;
-        }
-
-        virtual void query ( const std::string& name, const std::string& data )
-        {
-            std::cout
-                << "query(" << name << "='" << data << "')"
-                << std::endl;
-        }
-
-        virtual void reply ( const std::string& name, const std::string& data )
-        {
-            std::cout
-                << "reply(" << name << "='" << data << "')"
-                << std::endl;
-        }
-    };
-    istream().feed(buffer);
-}
-
 void advanced_test ()
 {
     class Test :
@@ -407,7 +378,5 @@ void advanced_test ()
 
 int main ( int, char ** )
 {
-    /*istream_test(ostream_request());
-    istream_test(ostream_response());*/
     advanced_test();
 }

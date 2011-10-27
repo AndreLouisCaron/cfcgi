@@ -15,7 +15,6 @@
    */
 namespace fcgi {}
 
-#include "istream.hpp"
 #include "ostream.hpp"
 
 #include "Application.hpp"
