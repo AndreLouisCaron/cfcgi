@@ -75,7 +75,7 @@ namespace fcgi {
           // build the reply (name,value) pair.
         std::ostringstream stream;
         stream
-            << (char)name.size() << (char)0 << name << "";
+            << (char)name.size() << (char)data.size() << name << data;
         const std::string param = stream.str();
           // send it.
         ::fcgi_owire_param(&myOWire, response.id(), param.data(), param.size());
