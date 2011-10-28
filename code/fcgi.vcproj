@@ -171,6 +171,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Headers.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Headers.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ostream.hpp"
 				>
 			</File>
@@ -185,14 +193,6 @@
 		</Filter>
 		<File
 			RelativePath=".\fcgi.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Headers.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Headers.hpp"
 			>
 		</File>
 		<File
