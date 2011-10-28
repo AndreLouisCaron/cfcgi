@@ -20,7 +20,7 @@
 extern "C" {
 #endif
 
-struct fcgi_pstream_t;
+struct fcgi_ipstream_t;
 
 typedef size_t(*fcgi_ipstream_state)
     (struct fcgi_ipstream_t*,const char*,size_t);

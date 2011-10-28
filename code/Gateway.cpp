@@ -13,6 +13,7 @@
 
 #include "Gateway.hpp"
 #include <sstream>
+#include <stdexcept>
 
 namespace fcgi {
 

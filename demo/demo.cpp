@@ -14,6 +14,7 @@
 #include <fcgi.h>
 #include <fcgi.hpp>
 
+#include <cstdlib>
 #include <ctime>
 #include <iostream>
 #include <string>
@@ -58,13 +59,12 @@ namespace {
         1,     // version       : FCGI_VERSION_1
         5,     // type          : FCGI_STDIN
         0,  1, // request id    : 1
-        0, 13, // content length: 13
+        0, 12, // content length: 12
         0,     // padding       : 0
         0,     // reserved      : ...
         
         // body,
-        //'h', 'e', 'l', 'l', 'o'
-        "hello, world!",
+        'h', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', '!',
     };
     const size_t SIZE3 = sizeof(DATA3)-1;
 
