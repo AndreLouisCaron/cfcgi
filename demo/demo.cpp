@@ -358,7 +358,7 @@ void advanced_test ()
             Application::output("Hello, FastCGI gateway!");
             Application::output();
             Application::errors("That was easy!");
-            Application::output();
+            Application::errors();
             
               // complete request.
             Application::end_request();
