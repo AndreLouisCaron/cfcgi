@@ -8,6 +8,12 @@
 // (see "LICENSE.txt"). If not, terms of the license are available online at
 // "http://www.opensource.org/licenses/mit".
 
+/*!
+ * @file Application.hpp
+ * @author Andre Caron (andre.l.caron@gmail.com)
+ * @brief High-level API for FastCGI application server implementation.
+ */
+
 #include "fcgi.h"
 #include "Request.hpp"
 

@@ -8,7 +8,7 @@
 /*!
  * @file Headers.cpp
  * @author Andre Caron (andre.l.caron@gmail.com)
- * @brief Incremental parser for the FastCGI parameter stream.
+ * @brief High-level API for FastCGI application server implementation.
  */
 
 #include "Headers.hpp"

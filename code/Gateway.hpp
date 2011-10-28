@@ -8,6 +8,12 @@
 // (see "LICENSE.txt"). If not, terms of the license are available online at
 // "http://www.opensource.org/licenses/mit".
 
+/*!
+ * @file Gateway.hpp
+ * @author Andre Caron (andre.l.caron@gmail.com)
+ * @brief High-level API for FastCGI gateway implementation.
+ */
+
 #include "fcgi.h"
 #include "Response.hpp"
 
@@ -57,6 +63,7 @@ namespace fcgi {
         void query ( const std::string& name );
 
         void new_request ( uint16_t request );
+        void set_request ( uint16_t request );
 
         void head ( const std::string& name, const std::string& data );
         void head ();

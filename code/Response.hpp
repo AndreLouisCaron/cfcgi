@@ -8,13 +8,20 @@
 // (see "LICENSE.txt"). If not, terms of the license are available online at
 // "http://www.opensource.org/licenses/mit".
 
+/*!
+ * @file Response.hpp
+ * @author Andre Caron (andre.l.caron@gmail.com)
+ * @brief High-level API for FastCGI gateway implementation.
+ */
+
 #include "fcgi.h"
 #include <string>
 
 namespace fcgi {
 
     /*!
-     * @brief FastCGI response from the gateway's point of view.
+     * @group application
+     * @brief Convenient storage for an HTTP response from the application.
      */
     class Response
     {

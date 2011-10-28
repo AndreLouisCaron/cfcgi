@@ -8,13 +8,20 @@
 // (see "LICENSE.txt"). If not, terms of the license are available online at
 // "http://www.opensource.org/licenses/mit".
 
+/*!
+ * @file Request.hpp
+ * @author Andre Caron (andre.l.caron@gmail.com)
+ * @brief High-level API for FastCGI application server implementation.
+ */
+
 #include "fcgi.h"
 #include "Headers.hpp"
 
 namespace fcgi {
 
     /*!
-     * @brief FastCGI request from the application's point of view.
+     * @group application
+     * @brief Convenient storage for an HTTP request from the gateway.
      */
     class Request
     {

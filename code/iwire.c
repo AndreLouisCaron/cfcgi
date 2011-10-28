@@ -6,7 +6,7 @@
 ** "http://www.opensource.org/licenses/mit". */
 
 /*!
- * @file fcgi.c
+ * @file iwire.c
  * @author Andre Caron <andre.l.caron@gmail.com>
  * @brief Parser for FastCGI records.
  */

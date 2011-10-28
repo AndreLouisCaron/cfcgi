@@ -11,7 +11,7 @@
 /*!
  * @file Headers.hpp
  * @author Andre Caron (andre.l.caron@gmail.com)
- * @brief Incremental parser for the FastCGI parameter stream.
+ * @brief High-level API for FastCGI application server implementation.
  */
 
 #include "fcgi.h"
@@ -20,6 +20,10 @@
 
 namespace fcgi {
 
+    /*!
+     * @group application
+     * @brief Convenient storage for HTTP request headers.
+     */
     class Headers
     {
         /* nested types. */

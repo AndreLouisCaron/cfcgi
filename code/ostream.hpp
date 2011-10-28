@@ -8,6 +8,12 @@
 // (see "LICENSE.txt"). If not, terms of the license are available online at
 // "http://www.opensource.org/licenses/mit".
 
+/*!
+ * @file ostream.hpp
+ * @author Andre Caron (andre.l.caron@gmail.com)
+ * @brief FastCGI wire protocol testing utility.
+ */
+
 #include "fcgi.h"
 #include <ostream>
 

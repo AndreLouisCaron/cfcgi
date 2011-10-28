@@ -9,7 +9,7 @@
 ** "http://www.opensource.org/licenses/mit". */
 
 /*!
- * @file fcgi_iwire.h
+ * @file iwire.h
  * @author Andre Caron (andre.l.caron@gmail.com)
  * @brief Incremental parser for FastCGI in-bound traffic.
  */

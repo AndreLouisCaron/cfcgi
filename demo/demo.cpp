@@ -5,6 +5,12 @@
 // (see "LICENSE.txt"). If not, terms of the license are available online at
 // "http://www.opensource.org/licenses/mit".
 
+/*!
+ * @file demo.cpp
+ * @author Andre Caron (andre.l.caron@gmail.com)
+ * @brief Demonstration of FastCGI API.
+ */
+
 #include <fcgi.h>
 #include <fcgi.hpp>
 
