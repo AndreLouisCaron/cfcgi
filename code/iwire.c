@@ -14,9 +14,6 @@
 #include "iwire.h"
 #include <string.h>
 
-typedef size_t(*fcgi_request_handler)(fcgi_iwire*,const char*,size_t);
-static const fcgi_request_handler fcgi_request_handlers[10];
-
 static const char * fcgi_iwire_error_messages[] =
 {
     "no error, parser ok",
@@ -40,6 +37,36 @@ static size_t _fcgi_iwire_copy ( char * lhs, const char * rhs, size_t n )
     }
     return (i);
 }
+
+typedef size_t(*fcgi_request_handler)(fcgi_iwire*,const char*,size_t);
+
+size_t FCGI_BEGIN_REQUEST(fcgi_iwire*,const char*,size_t);
+size_t FCGI_ABORT_REQUEST(fcgi_iwire*,const char*,size_t);
+size_t FCGI_END_REQUEST(fcgi_iwire*,const char*,size_t);
+size_t FCGI_PARAMS(fcgi_iwire*,const char*,size_t);
+size_t FCGI_STDIN(fcgi_iwire*,const char*,size_t);
+size_t FCGI_STDOUT(fcgi_iwire*,const char*,size_t);
+size_t FCGI_STDERR(fcgi_iwire*,const char*,size_t);
+size_t FCGI_DATA(fcgi_iwire*,const char*,size_t);
+size_t FCGI_GET_VALUES(fcgi_iwire*,const char*,size_t);
+size_t FCGI_GET_VALUES_RESULT(fcgi_iwire*,const char*,size_t);
+
+/* function pointers to handle internal state transitions.  order must match
+ * state numbers, which must match protocol record types. */
+static const fcgi_request_handler fcgi_request_handlers[] =
+{
+      /* note: off by one. */
+    FCGI_BEGIN_REQUEST,
+    FCGI_ABORT_REQUEST,
+    FCGI_END_REQUEST,
+    FCGI_PARAMS,
+    FCGI_STDIN,
+    FCGI_STDOUT,
+    FCGI_STDERR,
+    FCGI_DATA,
+    FCGI_GET_VALUES,
+    FCGI_GET_VALUES_RESULT,
+};
 
 static size_t fcgi_stage_buffer
     ( fcgi_iwire * stream, const char * data, size_t size )
@@ -384,23 +411,6 @@ static size_t FCGI_DATA
     }
     return (used);
 }
-
-/* function pointers to handle internal state transitions.  order must match
- * state numbers, which must match protocol record types. */
-static const fcgi_request_handler fcgi_request_handlers[] =
-{
-      /* note: off by one. */
-    FCGI_BEGIN_REQUEST,
-    FCGI_ABORT_REQUEST,
-    FCGI_END_REQUEST,
-    FCGI_PARAMS,
-    FCGI_STDIN,
-    FCGI_STDOUT,
-    FCGI_STDERR,
-    FCGI_DATA,
-    FCGI_GET_VALUES,
-    FCGI_GET_VALUES_RESULT,
-};
 
 void fcgi_iwire_init
     ( const fcgi_iwire_settings * settings, fcgi_iwire * stream )
