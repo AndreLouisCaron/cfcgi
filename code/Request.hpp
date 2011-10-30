@@ -16,6 +16,7 @@
 
 #include "fcgi.h"
 #include "Headers.hpp"
+#include "Role.hpp"
 
 namespace fcgi {
 
@@ -32,6 +33,7 @@ namespace fcgi {
         /* data. */
     private:
         const Id myId;
+	Role myRole;
         Headers myHead;
         std::string myBody;
 
@@ -56,6 +58,16 @@ namespace fcgi {
             myHead.clear();
             myBody.clear();
         }
+
+	void role ( const Role& role )
+	{
+	    myRole = role;
+	}
+
+	const Role& role () const
+	{
+	    return (myRole);
+	}
 
         Headers& head ()
         {

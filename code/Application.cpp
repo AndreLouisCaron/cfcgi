@@ -172,6 +172,21 @@ namespace fcgi {
     void Application::accept_request
         ( ::fcgi_iwire * stream, int role, int flags )
     {
+        Application& application = *static_cast<Application*>(stream->object);
+          // ignore invalid records.
+        if ( application.mySelection == application.myRequests.end() ) {
+            return;
+        }
+        Request& request = application.mySelection->second;
+        if ( role == 1 ) {
+            request.role(Role::responder());
+        }
+        if ( role == 2 ) {
+            request.role(Role::authorizer());
+        }
+        if ( role == 3 ) {
+            request.role(Role::filter());
+        }
     }
 
     void Application::accept_headers
