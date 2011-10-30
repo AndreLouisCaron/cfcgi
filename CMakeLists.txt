@@ -23,5 +23,14 @@ set(demo_sources
 add_executable(demo ${demo_sources})
 target_link_libraries(demo fcgi)
 
+  # pre-fork authorizer application.
+if(UNIX)
+  set(sources
+    ${demo_path}/nix/prefork-server.cpp)
+  add_executable(prefork-authorizer ${sources})
+  target_link_libraries(prefork-authorizer fcgi)
+  add_dependencies(prefork-authorizer fcgi)
+endif()
+
   # make sure fcgi library is built first.
 add_dependencies(demo fcgi)
