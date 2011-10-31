@@ -1,0 +1,3 @@
+[submodule "libs/cb64"]
+	path = libs/cb64
+	url = git://github.com/AndreLouisCaron/cb64.git

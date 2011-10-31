@@ -12,11 +12,13 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
 
-#include "../../code/Application.hpp"
+#include <b64.hpp>
+#include <fcgi.hpp>
 
 namespace {
 
@@ -30,85 +32,118 @@ namespace {
     public:
         static const int concurrent_requests = 1;
 
-	/* contract. */
+        /* contract. */
     protected:
-	virtual bool authorized
-	    ( const std::string& username, const std::string& password ) = 0;
+        virtual bool authorized
+            ( const std::string& username, const std::string& password ) = 0;
 
         /* overrides. */
     protected:
         virtual void end_of_head ( fcgi::Request& request )
         {
               // Make sure we're responding to an authorization request.
-	    if ( request.role() != fcgi::Role::authorizer() )
+#if 0
+            if ( request.role() != fcgi::Role::authorizer() )
             {
-		fcgi::Application::errors(
-		    "This is an authorizer, not a responder or filter.");
-		fcgi::Application::errors();
-		fcgi::Application::output();
-		fcgi::Application::end_request(401);
-		return;
-	    }
+                fcgi::Application::errors(
+                    "This is an authorizer, not a responder or filter.");
+                fcgi::Application::errors();
+                fcgi::Application::output();
+                fcgi::Application::end_request(1);
+                return;
+            }
+#endif
               // fetch authorization request.
-	    const fcgi::Headers& headers = request.head();
-	    const std::string authorization = headers.get("Authorization");
-	    if ( authorization.empty() ) {
-		fcgi::Application::errors("No 'Authorization' header.");
-		fcgi::Application::errors();
-		fcgi::Application::output();
-		fcgi::Application::end_request(401);
-		return;
-	    }
-	      // Check that we're using basic authentication.
-	    std::string credentials;
-	    { std::istringstream stream(authorization);
-		std::string scheme;
-		if (!(stream >> scheme) || (scheme != "Basic"))
+            const fcgi::Headers& headers = request.head();
+            const std::string authorization =
+                headers.get("HTTP_AUTHORIZATION");
+            std::cout
+                << "Authorization: '" << authorization << "'."
+                << std::endl;
+            if ( authorization.empty() ) {
+                fcgi::Application::errors("No 'Authorization' header.");
+                fcgi::Application::errors();
+                fcgi::Application::output();
+                fcgi::Application::end_request(1);
+                return;
+            }
+              // Fetch credentials, deny anything not "basic" authentication.
+            std::string credentials;
+            { std::istringstream stream(authorization);
+                std::string scheme;
+                if (!(stream >> scheme) || (scheme != "Basic"))
                 {
-		    fcgi::Application::errors(
-			"Authorization scheme '"+scheme+"' not supported.");
-		    fcgi::Application::errors();
-		    fcgi::Application::output();
-		    fcgi::Application::end_request(1);
-		    return;
-		}
-		//credentials = b64::decode(credentials);
-	    }
+                    fcgi::Application::errors(
+                        "Authorization scheme '"+scheme+"' not supported.");
+                    fcgi::Application::errors();
+                    fcgi::Application::output();
+                    fcgi::Application::end_request(1);
+                    return;
+                }
+                if (!(stream >> std::ws) || !std::getline(stream,credentials))
+                {
+                    fcgi::Application::errors(
+                        "Could not read credentials...");
+                    fcgi::Application::errors();
+                    fcgi::Application::output();
+                    fcgi::Application::end_request(1);
+                    return;
+                }
+                std::cout
+                    << "Credentials: '" << credentials << "'."
+                    << std::endl;
+                credentials = b64::decode(credentials);
+            }
               // extract credentials.
-	    std::string username;
-	    std::string password;
-	    std::istringstream stream(credentials);
-	    if ( !(stream >> std::ws) || !std::getline(stream,username,':')) {
-		fcgi::Application::errors("Could not extract username.");
-		fcgi::Application::errors();
-		fcgi::Application::output();
-		fcgi::Application::end_request(1);
-		return;
-	    }
-	    if ( !(stream >> std::ws) || !std::getline(stream,password)) {
-		fcgi::Application::errors("Could not extract password.");
-		fcgi::Application::errors();
-		fcgi::Application::output();
-		fcgi::Application::end_request(1);
-		return;
-	    }
+            std::string username;
+            std::string password;
+            std::istringstream stream(credentials);
+            if ( !(stream >> std::ws) || !std::getline(stream,username,':'))
+            {
+                fcgi::Application::errors("Could not extract username.");
+                fcgi::Application::errors();
+                fcgi::Application::output();
+                fcgi::Application::end_request(1);
+                return;
+            }
+            if ( !(stream >> std::ws) || !std::getline(stream,password))
+            {
+                fcgi::Application::errors("Could not extract password.");
+                fcgi::Application::errors();
+                fcgi::Application::output();
+                fcgi::Application::end_request(1);
+                return;
+            }
+            std::cout
+                << "Username: '" << username << "'."
+                << std::endl;
+            std::cout
+                << "Password: '" << password << "'."
+                << std::endl;
               // validate credentials.
-	    if ( authorized(username,password) ) {
-		fcgi::Application::errors();
-		fcgi::Application::output();
-		fcgi::Application::end_request();
-		return;
-	    }
-	    else {
-		fcgi::Application::errors("Invalid credentials:\n");
-		fcgi::Application::errors("  username='"+username+"',\n");
-		fcgi::Application::errors("  password='"+password+"'.\n");
-		fcgi::Application::errors();
-		fcgi::Application::output("<h1>Unauthorized.</h1>");
-		fcgi::Application::output();
-		fcgi::Application::end_request(1);
-		return;
-	    }
+            if ( authorized(username,password) )
+            {
+                std::cout
+                    << "Logged in!"
+                    << std::endl;
+                fcgi::Application::errors();
+                fcgi::Application::output();
+                fcgi::Application::end_request(1);
+                return;
+            }
+            else {
+                std::cout
+                    << "Invalid credentials!"
+                    << std::endl;
+                fcgi::Application::errors("Invalid credentials:\n");
+                fcgi::Application::errors("  username='"+username+"',\n");
+                fcgi::Application::errors("  password='"+password+"'.\n");
+                fcgi::Application::errors();
+                fcgi::Application::output("<h1>Unauthorized.</h1>");
+                fcgi::Application::output();
+                fcgi::Application::end_request(1);
+                return;
+            }
         }
 
         virtual void body ( fcgi::Request& request )
@@ -125,20 +160,20 @@ namespace {
     };
 
     class Application :
-	public Authorizer
+        public Authorizer
     {
-	/* meta data. */
+        /* meta data. */
     public:
-	static const int concurrent_requests = 1;
+        static const int concurrent_requests = 1;
 
-	/* overrides. */
+        /* overrides. */
     protected:
-	bool authorized
-	    ( const std::string& username, const std::string& password )
-	{
-	    return ((username == "Aladin")     &&
-		    (password == "open sesame"));
-	}
+        bool authorized
+            ( const std::string& username, const std::string& password )
+        {
+            return ((username == "aladin")     &&
+                    (password == "open-sesame"));
+        }
     };
 
     /*!
@@ -215,11 +250,31 @@ namespace {
     public:
         bool operator() ( int stream )
         {
+            std::cout
+                << "[" << ::getpid() << "] "
+                << "Creating a session."
+                << std::endl;
             Session session(stream);
+            std::cout
+                << "[" << ::getpid() << "] "
+                << "Reading data!"
+                << std::endl;
             char data[4*1024];
             ssize_t size = 0;
-            while ( (size=::recv(stream,data,size,0)) > 0 ) {
+            while ( (size=::recv(stream,data,sizeof(data),0)) > 0 )
+            {
+                std::cout
+                    << "[" << ::getpid() << "] "
+                    << "Received " << size << " bytes."
+                    << std::endl;
                 session.feed(data, size);
+            }
+            if ( size < 0 )
+            {
+                std::cout
+                    << "[" << ::getpid() << "] "
+                    << "Failed to read: '" << ::strerror(errno) << "'."
+                    << std::endl;
             }
             return (++myStage < myQuota);
         }
@@ -256,7 +311,7 @@ namespace {
           // Handle client connection.
         std::cout
             << "[" << ::getpid() << "] "
-            << "Received a connection!"
+            << "Received a connection (socket=" << socket << ")."
             << std::endl;
         server(stream);
           // Finished!
