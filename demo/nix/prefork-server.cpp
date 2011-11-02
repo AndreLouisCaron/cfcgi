@@ -42,9 +42,10 @@ namespace {
         virtual void end_of_head ( fcgi::Request& request )
         {
               // Make sure we're responding to an authorization request.
-#if 0
+	    std::cout << "Got a request!" << std::endl;
             if ( request.role() != fcgi::Role::authorizer() )
             {
+		std::cout << "Not an authorizer..." << std::endl;
                 fcgi::Application::errors(
                     "This is an authorizer, not a responder or filter.");
                 fcgi::Application::errors();
@@ -52,7 +53,7 @@ namespace {
                 fcgi::Application::end_request(1);
                 return;
             }
-#endif
+	    std::cout << "Is an authorizer!" << std::endl;
               // fetch authorization request.
             const fcgi::Headers& headers = request.head();
             const std::string authorization =
