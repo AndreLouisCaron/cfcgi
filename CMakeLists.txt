@@ -33,6 +33,7 @@ if(${${PROJECT_NAME}_is_toplevel})
     ${demo_path}/demo.cpp)
   add_executable(demo ${demo_sources})
   target_link_libraries(demo fcgi)
+  add_dependencies(demo fcgi)
 
     # pre-fork authorizer application.
   if(UNIX)
@@ -44,6 +45,3 @@ if(${${PROJECT_NAME}_is_toplevel})
   endif()
 
 endif()
-
-  # make sure fcgi library is built first.
-add_dependencies(demo fcgi)
