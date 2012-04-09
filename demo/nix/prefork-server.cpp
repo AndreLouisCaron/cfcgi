@@ -291,37 +291,39 @@ namespace {
     /*!
      * @brief Entry point for worker processes.
      */
-    int run ( int, char **, int listener )
+    int run (int, char **, int listener)
     try
     {
         Server server(1);
-          // Wait for connection from remote peer.
-        std::cout
-            << "[" << ::getpid() << "] "
-            << "Waiting for a connection."
-            << std::endl;
-        const int stream = ::accept_connection(listener);
-        if ( stream == -1 )
-        {
+        int stream = -1;
+        do {
+            // Wait for connection from remote peer.
             std::cout
                 << "[" << ::getpid() << "] "
-                << "Failed to accept: '" << ::strerror(errno) << "'."
+                << "Waiting for a connection."
                 << std::endl;
-            return (EXIT_FAILURE);
-        }
-          // Handle client connection.
-        std::cout
-            << "[" << ::getpid() << "] "
-            << "Received a connection (socket=" << socket << ")."
-            << std::endl;
-        server(stream);
-          // Finished!
+            stream = accept_connection(listener);
+            if (stream == -1)
+            {
+                std::cout
+                    << "[" << ::getpid() << "] "
+                    << "Failed to accept: '" << ::strerror(errno) << "'."
+                    << std::endl;
+                return (EXIT_FAILURE);
+            }
+            // Handle client connection.
+            std::cout
+                << "[" << ::getpid() << "] "
+                << "Received a connection (socket=" << socket << ")."
+                << std::endl;
+	}
+        while (server(stream));
+        // Finished!
         std::cout
             << "[" << ::getpid() << "] "
             << "Over and out!"
             << std::endl;
         ::close(stream);
-        ::close(listener);
         return (EXIT_SUCCESS);
     }
     catch ( ... )
