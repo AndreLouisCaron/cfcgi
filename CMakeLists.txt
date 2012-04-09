@@ -38,7 +38,7 @@ if(${${PROJECT_NAME}_is_toplevel})
     # pre-fork authorizer application.
   if(UNIX)
     set(sources
-      ${demo_path}/nix/prefork-server.cpp)
+      ${demo_path}/nix/sample-http-basic-authorizer.cpp)
     add_executable(prefork-authorizer ${sources})
     target_link_libraries(prefork-authorizer fcgi b64)
     add_dependencies(prefork-authorizer fcgi b64)

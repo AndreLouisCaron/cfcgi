@@ -29,4 +29,8 @@ namespace fcgi {}
 #include "Request.hpp"
 #include "Response.hpp"
 
+// Application models.
+#include "Authorizer.hpp"
+#include "HttpBasicAuthorizer.hpp"
+
 #endif /* _fcgi_hpp__ */

@@ -4,6 +4,8 @@
  * @brief Sample FastCGI server for *NIX using the pre-fork server model.
  */
 
+#include "prefork-server.hpp"
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
@@ -12,176 +14,21 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <algorithm>
 #include <cstdlib>
 #include <iostream>
-#include <sstream>
+#include <set>
 
-#include <b64.hpp>
-#include <fcgi.hpp>
-
-namespace {
-
-    /*!
-     * @brief Implementation of application logic.
-     */
-    class Authorizer :
-        public fcgi::Application
-    {
-        /* meta data. */
-    public:
-        static const int concurrent_requests = 1;
-
-        /* contract. */
-    protected:
-        virtual bool authorized
-            ( const std::string& username, const std::string& password ) = 0;
-
-        /* overrides. */
-    protected:
-        virtual void end_of_head ( fcgi::Request& request )
-        {
-              // Make sure we're responding to an authorization request.
-	    std::cout << "Got a request!" << std::endl;
-            if ( request.role() != fcgi::Role::authorizer() )
-            {
-		std::cout << "Not an authorizer..." << std::endl;
-                fcgi::Application::errors(
-                    "This is an authorizer, not a responder or filter.");
-                fcgi::Application::errors();
-                fcgi::Application::output();
-                fcgi::Application::end_request(1);
-                return;
-            }
-	    std::cout << "Is an authorizer!" << std::endl;
-              // fetch authorization request.
-            const fcgi::Headers& headers = request.head();
-            const std::string authorization =
-                headers.get("HTTP_AUTHORIZATION");
-            std::cout
-                << "Authorization: '" << authorization << "'."
-                << std::endl;
-            if ( authorization.empty() ) {
-                fcgi::Application::errors("No 'Authorization' header.");
-                fcgi::Application::errors();
-                fcgi::Application::output();
-                fcgi::Application::end_request(1);
-                return;
-            }
-              // Fetch credentials, deny anything not "basic" authentication.
-            std::string credentials;
-            { std::istringstream stream(authorization);
-                std::string scheme;
-                if (!(stream >> scheme) || (scheme != "Basic"))
-                {
-                    fcgi::Application::errors(
-                        "Authorization scheme '"+scheme+"' not supported.");
-                    fcgi::Application::errors();
-                    fcgi::Application::output();
-                    fcgi::Application::end_request(1);
-                    return;
-                }
-                if (!(stream >> std::ws) || !std::getline(stream,credentials))
-                {
-                    fcgi::Application::errors(
-                        "Could not read credentials...");
-                    fcgi::Application::errors();
-                    fcgi::Application::output();
-                    fcgi::Application::end_request(1);
-                    return;
-                }
-                std::cout
-                    << "Credentials: '" << credentials << "'."
-                    << std::endl;
-                credentials = b64::decode(credentials);
-            }
-              // extract credentials.
-            std::string username;
-            std::string password;
-            std::istringstream stream(credentials);
-            if ( !(stream >> std::ws) || !std::getline(stream,username,':'))
-            {
-                fcgi::Application::errors("Could not extract username.");
-                fcgi::Application::errors();
-                fcgi::Application::output();
-                fcgi::Application::end_request(1);
-                return;
-            }
-            if ( !(stream >> std::ws) || !std::getline(stream,password))
-            {
-                fcgi::Application::errors("Could not extract password.");
-                fcgi::Application::errors();
-                fcgi::Application::output();
-                fcgi::Application::end_request(1);
-                return;
-            }
-            std::cout
-                << "Username: '" << username << "'."
-                << std::endl;
-            std::cout
-                << "Password: '" << password << "'."
-                << std::endl;
-              // validate credentials.
-            if ( authorized(username,password) )
-            {
-                std::cout
-                    << "Logged in!"
-                    << std::endl;
-                fcgi::Application::errors();
-                fcgi::Application::output();
-                fcgi::Application::end_request(1);
-                return;
-            }
-            else {
-                std::cout
-                    << "Invalid credentials!"
-                    << std::endl;
-                fcgi::Application::errors("Invalid credentials:\n");
-                fcgi::Application::errors("  username='"+username+"',\n");
-                fcgi::Application::errors("  password='"+password+"'.\n");
-                fcgi::Application::errors();
-                fcgi::Application::output("<h1>Unauthorized.</h1>");
-                fcgi::Application::output();
-                fcgi::Application::end_request(1);
-                return;
-            }
-        }
-
-        virtual void body ( fcgi::Request& request )
-        {
-            // received input data.  keep responding.
-            // ...
-        }
-
-        virtual void end_of_body ( fcgi::Request& request )
-        {
-            // end of request, send reamaining data now!
-            // ...
-        }
-    };
-
-    class Application :
-        public Authorizer
-    {
-        /* meta data. */
-    public:
-        static const int concurrent_requests = 1;
-
-        /* overrides. */
-    protected:
-        bool authorized
-            ( const std::string& username, const std::string& password )
-        {
-            return ((username == "aladin")     &&
-                    (password == "open-sesame"));
-        }
-    };
+namespace fcgi { namespace nix {
 
     /*!
      * @brief Implementation of I/O facilities for the application.
+     *
+     * An instance of this class is created for each incoming request.  Each
+     * worker process may own up to @c concurrent_requests instances of this
+     * class at any given time.
      */
     class Session :
-        public Application
+        public ::Application
     {
         /* data. */
     private:
@@ -189,30 +36,35 @@ namespace {
 
         /* construction. */
     public:
-        Session ( int stream )
+        /*!
+         * @brief Create a session.
+         * @param stream TCP stream socket file descriptor.
+         */
+        Session (int stream)
             : myStream(stream)
         {}
 
         /* methods. */
     public:
-        void feed ( const char * data, size_t size )
+        void feed (const char * data, size_t size)
         {
-              // parse received record(s).
-            fcgi::Application::afeed(data, size);
+            // parse received record(s).
+            afeed(data, size);
         }
 
         /* overrides. */
     protected:
-        virtual void asend ( const char * data, size_t size )
+        virtual void asend (const char * data, size_t size)
         {
-              // push received data.
+            // push received data.
             ssize_t sent = 0;
             ssize_t pass = 0;
-            while ( (pass=::send(myStream,data+sent,size-sent,0)) > 0 ) {
+            while ((pass=::send(myStream,data+sent,size-sent,0)) > 0) {
                 sent += pass;
             }
-              // confirm that we were able to send everything.
-            if ( sent != size )
+
+            // confirm that we were able to send everything.
+            if (sent != size)
             {
                 std::cout
                     << "[" << ::getpid() << "] "
@@ -222,47 +74,303 @@ namespace {
         }
 
         virtual void query
-            ( const std::string& name, const std::string& data )
+            (const std::string& name, const std::string& data)
         {
             // ...
-            if ( Application::concurrent_requests > 0 )
+            if (concurrent_requests() > 0)
             {
             }
         }
     };
 
+    class Server; int run (Server& server);
+
     /*!
-     * @brief Process context.
+     * @brief Master process context.
      */
     class Server
+    {
+      /* data. */
+    private:
+      int myListener;
+      std::set< ::pid_t > myWorkers;
+
+      /* construction. */
+    public:
+        Server (int argc, char ** argv)
+          : myListener(-1)
+        {
+            // IPv4 end point to listen on.
+            ::sockaddr_in endpoint;
+            endpoint.sin_family = AF_INET;
+            endpoint.sin_addr.s_addr = INADDR_ANY;
+            endpoint.sin_port = ::htons(9000);
+
+            // Create a listening socket.
+            myListener = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+            if (myListener == -1)
+            {
+                std::cout
+                    << "[" << ::getpid() << "] "
+                    << "Failed to create socket: '" << ::strerror(errno) << "'."
+                    << std::endl;
+                throw (std::exception());
+            }
+
+            // Configure the listening socket.
+            { const int status = ::bind(myListener,
+                                        (::sockaddr*)&endpoint,
+                                        sizeof(endpoint));
+                if (status == -1)
+                {
+                    std::cout
+                        << "[" << ::getpid() << "] "
+                        << "Failed to bind socket: '"
+                        << ::strerror(errno) << "'."
+                        << std::endl;
+                    ::close(myListener);
+                    throw (std::exception());
+                }
+            }
+
+            // Start listening for connections.
+            { const int status = ::listen(myListener, SOMAXCONN);
+                if (status == -1)
+                {
+                    std::cout
+                        << "[" << ::getpid() << "] "
+                        << "Failed to listen: '" << ::strerror(errno) << "'."
+                        << std::endl;
+                    ::close(myListener);
+                    throw (std::exception());
+                }
+            }
+        }
+
+        ~Server ()
+        {
+            ::close(myListener);
+        }
+
+      /* methods. */
+    public:
+        /*!
+         * @brief Obtain the maximum number of requests handled by each worker.
+         * @return The maximum number of requests for each worker.
+         *
+         * This represents the maximum number of total connections, regardless
+         * of FastCGI connection multiplexing.  After handling @c worker_quota()
+         * connections, the worker process will self-terminate and a new worker
+         * process will be spawned to replace it.
+         */
+        int worker_quota () const {
+            return (1);
+        }
+
+        /*!
+         * @brief Obtain the listener socket.
+         * @return The listener socket file descriptor.
+         *
+         * This listener socket is shared between all worker processes.  It is
+         * inherited from the master process when spawning the worker.
+         */
+        int listener () const {
+            return (myListener);
+        }
+
+        /*!
+         * @brief Block until the gateway attemps to connect.
+         * @return The TCP stream socket file descriptor for the new connection.
+         */
+        int accept_connection ()
+        {
+            ::sockaddr_in endpoint;
+            ::socklen_t size = sizeof(endpoint);
+            return (::accept(myListener, (::sockaddr*)&endpoint, &size));
+        }
+
+        /*!
+         * @brief Obtain the maximum number of simultaneous worker processes.
+         * @return The upper bound on the number of worker processes.
+         *
+         * This value equates to the number of simultaneous open connections
+         * because each worker process processes exactly one incoming connection
+         * at a time.
+         *
+         * If FastCGI connection multiplexing is disabled, this also represents
+         * the maximum number of simultaneous open requests being processed at
+         * any given time.  If connection multiplexing is enabled, multiply this
+         * value by the upper bound on the number of simultaneous requests per
+         * connection to obtain the total number of simultaneous requests.
+         */
+        std::size_t workers () const
+        {
+            return (1);
+        }
+
+        /*!
+         * @brief Spawn worker processes until there are @c workers().
+         *
+         * This method should be called as soon as the server is ready to
+         * accept incoming connections.
+         */
+        void spawn_workers ()
+        {
+            while (myWorkers.size() < workers()) {
+                spawn_worker();
+            }
+        }
+
+        /*!
+         * @brief Monitor worker status changes, re-spawn if necessary.
+         *
+         * This method replaces all worker processes that have exited, then
+         * returns control to the caller.  You should call this method in a
+         * loop in the master process and stop calling it once it has been
+         * determined that the server should stop accepting incoming
+         * connections.
+         */
+        void monitor_workers ()
+        {
+            int status = 0;
+            ::pid_t worker = ::waitpid(-1, &status, WNOHANG);
+            while (worker != 0)
+            {
+                if (worker < 0)
+                {
+                    std::cout
+                        << "[" << ::getpid() << "] "
+                        << "Failed to wait: '" << ::strerror(errno) << "'."
+                        << std::endl;
+                    throw (std::exception());
+                }
+
+                if (WIFEXITED(status))
+                {
+                    const int exit_status = WEXITSTATUS(status);
+                    if (exit_status != 0)
+                    {
+                        std::cout
+                            << "[" << ::getpid() << "] "
+                            << "Worker failure (" << exit_status << ")."
+                            << std::endl;
+                    }
+                    myWorkers.erase(worker);
+
+                    // Replace the worker.
+                    spawn_worker();
+                }
+
+                // Check for another status change.
+                worker = ::waitpid(-1, &status, WNOHANG);
+            }
+        }
+
+        /*!
+         * @brief Wait for all worker processes to complete, don't respawn.
+         *
+         * Call this method after it has been determined that no more incoming
+         * connections should be accepted.
+         *
+         * @todo Signal workers to let them know they should stop accepting
+         *  incoming connections and return early.
+         * @todo Implement some sort of timeout, after which to kill any
+         *  leftover workers.  This would enable an upper bound on shutdown.
+         */
+        void wait_for_workers ()
+        {
+            while (!myWorkers.empty())
+            {
+                int status = 0;
+                const ::pid_t worker = ::wait(&status);
+                if (worker < 0)
+                {
+                    std::cout
+                        << "[" << ::getpid() << "] "
+                        << "Failed to wait: '" << ::strerror(errno) << "'."
+                        << std::endl;
+                    throw (std::exception());
+                }
+                if (WIFEXITED(status))
+                {
+                    const int status = WEXITSTATUS(status);
+                    if (status != 0)
+                    {
+                        std::cout
+                            << "[" << ::getpid() << "] "
+                            << "Worker exited abnormally."
+                            << std::endl;
+                    }
+                    myWorkers.erase(worker);
+                }
+            }
+        }
+
+    private:
+        void spawn_worker ()
+        {
+              // Spawn a new slave process.
+            const ::pid_t worker = ::fork();
+            if (worker < 0)
+            {
+                std::cout
+                    << "[" << ::getpid() << "] "
+                    << "Failed to spawn: '" << ::strerror(errno) << "'."
+                    << std::endl;
+                throw (std::exception());
+            }
+
+            // Assign new slave process some work.
+            if (worker == 0) {
+                std::exit(run(*this));
+            }
+
+            std::cout
+                << "[" << ::getpid() << "] Spawned! (" << worker << ")"
+                << std::endl;
+
+            // Keep track of new slave process.
+            myWorkers.insert(worker);
+        }
+    };
+
+    /*!
+     * @brief Slave process context.
+     */
+    class Worker
     {
         /* data. */
     private:
         int myQuota;
-        int myStage;
+        int myCount;
 
         /* construction. */
     public:
-        Server ( int quota )
-            : myQuota(quota), myStage(0)
+        Worker (Server& server)
+            : myQuota(server.worker_quota()), myCount(0)
         {}
 
         /* operators. */
     public:
-        bool operator() ( int stream )
+        bool achieved_quota () const {
+            return (myCount >= myQuota);
+        }
+
+        bool handle (int stream)
         {
             std::cout
                 << "[" << ::getpid() << "] "
                 << "Creating a session."
                 << std::endl;
             Session session(stream);
+
             std::cout
                 << "[" << ::getpid() << "] "
                 << "Reading data!"
                 << std::endl;
             char data[4*1024];
             ssize_t size = 0;
-            while ( (size=::recv(stream,data,sizeof(data),0)) > 0 )
+            while ((size=::recv(stream,data,sizeof(data),0)) > 0)
             {
                 std::cout
                     << "[" << ::getpid() << "] "
@@ -270,31 +378,31 @@ namespace {
                     << std::endl;
                 session.feed(data, size);
             }
-            if ( size < 0 )
+
+            // Validate that last read suceeded.
+            if (size < 0)
             {
                 std::cout
                     << "[" << ::getpid() << "] "
                     << "Failed to read: '" << ::strerror(errno) << "'."
                     << std::endl;
             }
-            return (++myStage < myQuota);
+
+            // Update worker quota.
+            return (++myCount < myQuota);
         }
     };
-
-    int accept_connection ( int listener )
-    {
-        ::sockaddr_in endpoint;
-        ::socklen_t size = sizeof(endpoint);
-        return (::accept(listener, (::sockaddr*)&endpoint, &size));
-    }
 
     /*!
      * @brief Entry point for worker processes.
      */
-    int run (int, char **, int listener)
+    int run (Server& server)
     try
     {
-        Server server(1);
+        Worker worker(server);
+
+        // Accept connections until the quota is satisfied
+        // or the handler requests an early exit.
         int stream = -1;
         do {
             // Wait for connection from remote peer.
@@ -302,7 +410,7 @@ namespace {
                 << "[" << ::getpid() << "] "
                 << "Waiting for a connection."
                 << std::endl;
-            stream = accept_connection(listener);
+            stream = server.accept_connection();
             if (stream == -1)
             {
                 std::cout
@@ -311,128 +419,80 @@ namespace {
                     << std::endl;
                 return (EXIT_FAILURE);
             }
+
             // Handle client connection.
             std::cout
                 << "[" << ::getpid() << "] "
                 << "Received a connection (socket=" << socket << ")."
                 << std::endl;
-	}
-        while (server(stream));
+        }
+        while (worker.handle(stream));
+
         // Finished!
         std::cout
             << "[" << ::getpid() << "] "
-            << "Over and out!"
-            << std::endl;
+            << "Over and out";
+        if (!worker.achieved_quota()) {
+            std::cout << " (early exit)";
+        }
+        std::cout << "!" << std::endl;
+
         ::close(stream);
         return (EXIT_SUCCESS);
     }
-    catch ( ... )
+    catch (const std::exception& error)
     {
         std::cerr
             << "[" << ::getpid() << "] "
-            << "Worker crashed."
+            << "Handler failed (" << error.what() << ")."
+            << std::endl;
+        return (EXIT_FAILURE);
+    }
+    catch (...)
+    {
+        std::cerr
+            << "[" << ::getpid() << "] "
+            << "Handler crashed!"
             << std::endl;
         return (EXIT_FAILURE);
     }
 
-}
+} }
 
 /*!
  * @brief Entry point for master process.
  */
-int main ( int argc, char ** argv )
+int main (int argc, char ** argv)
+try
 {
-    const int multiplicity = 1;
-      // IPv4 end point to listen on.
-    ::sockaddr_in endpoint;
-    endpoint.sin_family = AF_INET;
-    endpoint.sin_addr.s_addr = INADDR_ANY;
-    endpoint.sin_port = ::htons(9000);
-      // Create a listening socket.
-    const int listener = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if ( listener == -1 )
-    {
-        std::cout
-            << "[" << ::getpid() << "] "
-            << "Failed to create socket: '" << ::strerror(errno) << "'."
-            << std::endl;
-        return (EXIT_FAILURE);
+    // Initialize the server.
+    fcgi::nix::Server server(argc, argv);
+
+    // Spawn initial set of workers.
+    server.spawn_workers();
+
+    // Re-spawn workers as necessary, check 20 times per second.
+    const ::useconds_t microsecond = 1;
+    const ::useconds_t millisecond = 1000*microsecond;
+    while (true) {
+        ::usleep(50*millisecond);
+        server.monitor_workers();
     }
-    { const int status = ::bind(listener,
-                                (::sockaddr*)&endpoint, sizeof(endpoint));
-        if ( status == -1 )
-        {
-            std::cout
-                << "[" << ::getpid() << "] "
-                << "Failed to bind socket: '" << ::strerror(errno) << "'."
-                << std::endl;
-            ::close(listener);
-            return (EXIT_FAILURE);
-        }
-    }
-    { const int status = ::listen(listener, SOMAXCONN);
-        if ( status == -1 )
-        {
-            std::cout
-                << "[" << ::getpid() << "] "
-                << "Failed to listen: '" << ::strerror(errno) << "'."
-                << std::endl;
-            ::close(listener);
-            return (EXIT_FAILURE);
-        }
-    }
-      // Spawn workers.
-    ::pid_t workers[multiplicity] = { 0 };
-    for ( int i = 0; (i < multiplicity); ++i )
-    {
-          // Spawn one worker.
-        workers[i] = ::fork();
-        if ( workers[i] < 0 )
-        {
-            std::cout
-                << "[" << ::getpid() << "] "
-                << "Failed to spawn: '" << ::strerror(errno) << "'."
-                << std::endl;
-            ::close(listener);
-            return (EXIT_FAILURE);
-        }
-          // Dispatch actual work to worker process.
-        if ( workers[i] == 0 ) {
-            return (::run(argc, argv, listener));
-        }
-          // Keep spawning...
-        std::cout
-            << "[" << ::getpid() << "] "
-            << "Spawned! (" << workers[i] << ")"
-            << std::endl;
-    }
-      // Wait for workers to complete.
-    for ( int i = 0; (i < multiplicity); ++i )
-    {
-        int result = 0;
-        const ::pid_t worker = ::wait(&result);
-        if ( worker < 0 )
-        {
-            std::cout
-                << "[" << ::getpid() << "] "
-                << "Failed to wait: '" << ::strerror(errno) << "'."
-                << std::endl;
-            ::close(listener);
-            return (EXIT_FAILURE);
-        }
-        if (WIFEXITED(result))
-        {
-            const int status = WEXITSTATUS(result);
-            if ( status != 0 )
-            {
-                std::cout
-                    << "[" << ::getpid() << "] "
-                    << "Worker exited abnormally."
-                    << std::endl;
-            }
-        }
-    }
-      // Finished!
-    ::close(listener);
-    return (EXIT_SUCCESS);
+
+    // Wait for all workers to complete (don't leave zombies).
+    server.wait_for_workers();
+}
+catch (const std::exception& error)
+{
+    std::cerr
+        << error.what()
+        << std::endl;
+    return (EXIT_FAILURE);
+}
+catch (...)
+{
+    std::cerr
+        << "Uncaught internal error!"
+        << std::endl;
+    return (EXIT_FAILURE);
 }
