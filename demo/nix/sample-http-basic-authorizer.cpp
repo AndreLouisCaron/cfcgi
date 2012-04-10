@@ -24,6 +24,10 @@ namespace {
 
         /* overrides. */
     protected:
+        virtual const std::string& realm () const {
+            static const std::string realm("Secure Area"); return (realm);
+        }
+
         bool authorized
             (const std::string& username, const std::string& password)
         {

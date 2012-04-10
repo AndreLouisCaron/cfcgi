@@ -29,6 +29,16 @@ namespace fcgi {
         /* contract. */
     protected:
         /*!
+         * @brief Specify realm stream transmitted to the browser.
+         * @return The realm string.
+         *
+         * The realm string is presented to the user to inform them of why they
+         * need to enter credentials.  The realm string consists of a
+         * description of the "area" protected by these credentials.
+         */
+        virtual const std::string& realm () const = 0;
+
+        /*!
          * @brief Query the password database.
          * @param username Username.
          * @param password Password.
@@ -52,6 +62,7 @@ namespace fcgi {
                 errors();
                 output(
                     "Status:401 Authorization required.\r\n"
+                    "WWW-Authenticate: Basic realm=\"" + realm() + "\"\r\n"
                     "Content-Type:text/html\r\n"
                     "\r\n"
                     "<p>Enter your credentials for authorization purposes.</p>"
