@@ -1,0 +1,124 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Cfcgi by AndreLouisCaron</title>
+    
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Cfcgi</h1>
+        <p>Streaming parser for FastCGI records in C.</p>
+        <p class="view"><a href="https://github.com/AndreLouisCaron/cfcgi">View the Project on GitHub <small>AndreLouisCaron/cfcgi</small></a></p>
+        <ul>
+          <li><a href="https://github.com/AndreLouisCaron/cfcgi/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/AndreLouisCaron/cfcgi/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/AndreLouisCaron/cfcgi">Fork On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <p>Welcome to the <code>cfcgi</code> project home page!</p>
+
+<h1>Project description</h1>
+
+<p><code>cfcgi</code> is a modern replacement for the reference FastCGI libraries.  It features a streaming/incremental parser for FastCGI records written in plain C, as well as a higher-level C++ API.  It provides the necessary infrastructure for implementing FastCGI support in both HTTP gateways (web servers) and application servers.</p>
+
+<h2>Features</h2>
+
+<ol>
+<li>Tiny footprint!  Statically compile <code>cfcgi</code> into your gateway or application with minimal overhead.  At its minimum, <code>cfcgi</code> consists only of a very small C API.</li>
+<li>Streaming/incremental parser in C.  The parser is fully interruptible, and thus suitable for use with asynchronous I/O.  Just feed the parser data as it is received and let it tell you when it has data to process.</li>
+<li>High-level FastCGI application handlers in C++.  Don't want to fuss with all that "complicated" C interface?  Fine, just inherit from <code>fcgi::Responder</code>, <code>fcgi::Authorizer</code> or <code>fcgi::Filter</code> and create a FastCGI application handler in minutes.</li>
+<li>Full support for all FastCGI features, including authorizers and filters.  Add custom authorization without the fuss of writing a plug-in for your web server.</li>
+<li>Built-in FastCGI application drivers for popular environments.  Mix and match your application handlers with different I/O models and benchmark them.  See which one gives you the best performance for your specific application.</li>
+</ol><h1>Getting started</h1>
+
+<h2>Documentation</h2>
+
+<p>The Doxygen API documentation will be pre-compiled and made available online shortly.</p>
+
+<h2>Checking out the code</h2>
+
+<p>Pop your favorite terminal, locate your favorite development folder (named <code>projects</code> here) and fetch the code and its  dependencies:</p>
+
+<pre><code>$ cd projects
+$ git clone git@github.com:AndreLouisCaron/cfcgi.git
+$ cd cfcgi
+$ git submodule init
+$ git submodule update
+</code></pre>
+
+<h2>Compiling</h2>
+
+<h3>UNIX-like systems</h3>
+
+<pre><code>$ mkdir work &amp;&amp; cd work
+$ cmake ..
+$ make
+$ make test
+</code></pre>
+
+<h3>Microsoft Windows</h3>
+
+<p>If you're used to the command line interface and a real text editor, you can build the software using NMake:</p>
+
+<pre><code>$ mkdir work &amp;&amp; cd work
+$ cmake -G "NMake Makefiles" ..
+$ nmake
+$ nmake /A test
+</code></pre>
+
+<p>Alternatively, if you prefer the Visual Studio IDE and/or want to use the interactive debugger, you can generate Visual Studio solutions instead:</p>
+
+<pre><code>$ cmake -G "Visual Studio 9 2008" ..
+$ devenv
+</code></pre>
+
+<p>Use <code>"Visual Studio 8 2005"</code> or <code>"Visual Studio 8 2005 Win64"</code> for 32-bit and 64-bit builds using Visual Studio 2005.</p>
+
+<h1>License and terms of use</h1>
+
+<p>Using this software in open source as well as commercial (close-source) applications is subject to the following conditions.</p>
+
+<blockquote>
+<p>Copyright (C) 2011-2012, Andre Caron (andre.l.caron@gmail.com)
+All rights reserved.</p>
+
+<p>Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:</p>
+
+<p>The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.</p>
+
+<p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.</p>
+</blockquote>
+
+<p>If you like this software and use it in your applications, I would like to hear from you.  If you're willing to publicly admit it, I'll even add you to a list of known users.  This will help attract attention to the project and give it more credibility, ensuring the software stays up-to-date and bug-free!</p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/AndreLouisCaron">AndreLouisCaron</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
