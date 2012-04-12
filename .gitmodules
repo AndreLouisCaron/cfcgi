@@ -1,3 +1,6 @@
 [submodule "libs/cb64"]
 	path = libs/cb64
 	url = git://github.com/AndreLouisCaron/cb64.git
+[submodule "libs/w32"]
+	path = libs/w32
+	url = git://github.com/AndreLouisCaron/w32.git

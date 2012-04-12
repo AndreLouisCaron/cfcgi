@@ -14,23 +14,13 @@ cmake_minimum_required(VERSION 2.6)
 
 project(cfcgi)
 
-find_package(doxygen)
-
-# Compile API documentation from source code.
-function(add_api_documentation target)
-  if(DOXYGEN_EXECUTABLE)
-    add_custom_target(
-      ${target}
-      COMMAND
-        ${DOXYGEN_EXECUTABLE}
-      WORKING_DIRECTORY
-        ${CMAKE_CURRENT_BINARY_DIR}
-      COMMENT
-        "Compiling documentation."
-      VERBATIM
-    )
-  endif()
-endfunction()
+# set global compiler options.
+set(CMAKE_MODULE_PATH
+  ${CMAKE_CURRENT_SOURCE_DIR}/site
+)
+find_package(MSVCExtras)
+msvc_configure_runtime()
+msvc_enable_se_handling()
 
 # build dependencies.
 set(cb64_DIR
@@ -38,8 +28,22 @@ set(cb64_DIR
 )
 find_package(cb64)
 
+if(MSVC)
+  # Ignore warnings about using standard functions.
+  add_definitions(
+    -D_SCL_SECURE_NO_WARNINGS
+    -D_CRT_SECURE_NO_WARNINGS
+  )
+  # Target a specific Windows version (Vista and above).
+  add_definitions(
+    -D_WIN32_WINNT=0x601
+  )
+endif()
+
 # resolve library headers.
-include_directories(${cb64_include_dirs})
+include_directories(
+  ${cb64_include_dirs}
+)
 
 # build main library.
 add_subdirectory(code)
@@ -52,10 +56,32 @@ if(${PROJECT_NAME} STREQUAL ${CMAKE_PROJECT_NAME})
     ${CMAKE_CURRENT_SOURCE_DIR}/code
   )
 
+  # extra dependencies for Windows-specific demo projects.
+  if(WIN32)
+    set(w32_DIR
+      ${CMAKE_CURRENT_SOURCE_DIR}/libs/w32
+    )
+    set(w32_libraries
+      w32
+      w32.dbg
+      w32.io
+      w32.ipc
+      w32.mt
+      w32.net
+      w32.net.tcp
+      w32.net.ipv4
+    )
+    find_package(w32
+      COMPONENTS ${w32_libraries}
+    )
+  endif()
+
   # build demo projects.
   add_subdirectory(demo)
 
   # add 'help' target for API documentation.
+  find_package(doxygen)
+  find_package(DoxygenExtras)
   configure_file(
     ${CMAKE_SOURCE_DIR}/help/Doxyfile
     ${CMAKE_BINARY_DIR}/Doxyfile @ONLY

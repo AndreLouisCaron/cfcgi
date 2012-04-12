@@ -20,7 +20,6 @@ well suited for being used in an object-oriented wrapper.
 Demonstration
 =============
 
-There is a pre-fork server (*NIX systems only) implementing a FastCGI
-authorizer in the ``demo/nix`` folder.  It also comes with a minimal LigHTTPd
-configuration to test it against an existing FastCGI implementation known to
-work!
+There is a pre-fork/spawn server implementing a FastCGI authorizer in the
+``demo`` folder.  It also comes with a minimal LigHTTPd configuration to test
+it against an existing FastCGI implementation known to work!
