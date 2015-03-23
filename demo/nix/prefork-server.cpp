@@ -104,7 +104,7 @@ namespace fcgi { namespace nix {
             ::sockaddr_in endpoint;
             endpoint.sin_family = AF_INET;
             endpoint.sin_addr.s_addr = INADDR_ANY;
-            endpoint.sin_port = ::htons(9000);
+            endpoint.sin_port = htons(9000);
 
             // Create a listening socket.
             myListener = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -423,7 +423,7 @@ namespace fcgi { namespace nix {
             // Handle client connection.
             std::cout
                 << "[" << ::getpid() << "] "
-                << "Received a connection (socket=" << socket << ")."
+                << "Received a connection (socket=" << stream << ")."
                 << std::endl;
         }
         while (worker.handle(stream));

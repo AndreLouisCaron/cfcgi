@@ -36,5 +36,5 @@ set(sources
 add_library(fcgixx
   STATIC ${sources} ${headers}
 )
-add_dependencies(fcgixx fcgi)
-target_link_libraries(fcgixx fcgi)
+add_dependencies(fcgixx fcgi b64 b64xx)
+target_link_libraries(fcgixx fcgi b64 b64xx)
